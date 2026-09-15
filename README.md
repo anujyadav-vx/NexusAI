@@ -1,6 +1,6 @@
 # NexusAI – Enterprise Multi-User AI SaaS Platform
 
-An industry-ready, full-stack **AI SaaS Dashboard & Multi-User Platform** built purely with **JavaScript** (React.js + Node.js/Express, strictly **zero TypeScript**).
+An industry-ready, full-stack **AI SaaS Dashboard & Multi-User Platform** built purely with **JavaScript** (React.js + Node.js/Express).
 
 Designed for startup-scale workloads with high-performance glassmorphism aesthetics, dark & light themes, JWT authentication, role-based access control (RBAC), subscription & token billing management, telemetry charts, and **7 production-grade AI tools**.
 
