@@ -1,0 +1,249 @@
+{
+  "users": [
+    {
+      "id": "usr_admin_1",
+      "name": "Alex Vance (Admin)",
+      "email": "admin@saas.ai",
+      "passwordHash": "$2a$10$95IglrVnIuV7q0vL9fDquOhXoW.y9Zl7KxV0j42Zk.L9Q/qGq8uC6",
+      "role": "admin",
+      "plan": "enterprise",
+      "tokensUsed": 14250,
+      "tokenLimit": 1000000,
+      "createdAt": "2026-01-10T10:00:00.000Z",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "usr_demo_1",
+      "name": "Jordan Lee",
+      "email": "demo@saas.ai",
+      "passwordHash": "$2a$10$89L7yJmJv9tWvQpG/9mDpuO4Z8/21G1hNqW3e5R7tY9uI1oP3s5eW",
+      "role": "user",
+      "plan": "free",
+      "tokensUsed": 14280,
+      "tokenLimit": 5000,
+      "createdAt": "2026-02-01T14:30:00.000Z",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": "sub_1",
+      "userId": "usr_admin_1",
+      "plan": "enterprise",
+      "status": "active",
+      "amount": 99,
+      "currentPeriodEnd": "2026-12-31T23:59:59.000Z"
+    },
+    {
+      "id": "sub_2",
+      "userId": "usr_demo_1",
+      "plan": "free",
+      "status": "active",
+      "amount": 0,
+      "currentPeriodEnd": "2026-10-15T09:17:40.376Z"
+    }
+  ],
+  "aiRequests": [
+    {
+      "id": "req_1789463853858_6w95",
+      "userId": "usr_demo_1",
+      "tool": "imageGenerator",
+      "title": "Image: dog\n...",
+      "tokensUsed": 800,
+      "createdAt": "2026-09-15T09:17:33.858Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463850279_pmfs",
+      "userId": "usr_demo_1",
+      "tool": "imageGenerator",
+      "title": "Image: dog\n...",
+      "tokensUsed": 800,
+      "createdAt": "2026-09-15T09:17:30.279Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463846252_04kl",
+      "userId": "usr_demo_1",
+      "tool": "imageGenerator",
+      "title": "Image: dog\n...",
+      "tokensUsed": 800,
+      "createdAt": "2026-09-15T09:17:26.252Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463841158_kfjt",
+      "userId": "usr_demo_1",
+      "tool": "imageGenerator",
+      "title": "Image: dog\n...",
+      "tokensUsed": 800,
+      "createdAt": "2026-09-15T09:17:21.158Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463839755_4zwz",
+      "userId": "usr_demo_1",
+      "tool": "imageGenerator",
+      "title": "Image: dog\n...",
+      "tokensUsed": 800,
+      "createdAt": "2026-09-15T09:17:19.755Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463830688_pl59",
+      "userId": "usr_demo_1",
+      "tool": "imageGenerator",
+      "title": "Image: Cyberpunk neon skyscraper with...",
+      "tokensUsed": 800,
+      "createdAt": "2026-09-15T09:17:10.689Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463807361_5n5q",
+      "userId": "usr_demo_1",
+      "tool": "imageGenerator",
+      "title": "Image: Cyberpunk neon skyscraper with...",
+      "tokensUsed": 800,
+      "createdAt": "2026-09-15T09:16:47.361Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463797211_19n6",
+      "userId": "usr_demo_1",
+      "tool": "sqlGenerator",
+      "title": "SQL: Find the top 5 highest spendin...",
+      "tokensUsed": 310,
+      "createdAt": "2026-09-15T09:16:37.211Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463782637_y75i",
+      "userId": "usr_demo_1",
+      "tool": "resumeAnalyzer",
+      "title": "Resume analysis for Senior Full Stack Engineer",
+      "tokensUsed": 420,
+      "createdAt": "2026-09-15T09:16:22.637Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463770121_ho1j",
+      "userId": "usr_demo_1",
+      "tool": "codeReviewer",
+      "title": "Code Review (javascript)",
+      "tokensUsed": 510,
+      "createdAt": "2026-09-15T09:16:10.121Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463753564_uvw7",
+      "userId": "usr_demo_1",
+      "tool": "chatAssistant",
+      "title": "yes...",
+      "tokensUsed": 170,
+      "createdAt": "2026-09-15T09:15:53.564Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463733636_1ksn",
+      "userId": "usr_demo_1",
+      "tool": "chatAssistant",
+      "title": "hii...",
+      "tokensUsed": 170,
+      "createdAt": "2026-09-15T09:15:33.636Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463338916_j3ff",
+      "userId": "usr_demo_1",
+      "tool": "codeReviewer",
+      "title": "Code Review (javascript)",
+      "tokensUsed": 510,
+      "createdAt": "2026-09-15T09:08:58.916Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1789463338906_0izm",
+      "userId": "usr_demo_1",
+      "tool": "chatAssistant",
+      "title": "Explain architectural saga pattern...",
+      "tokensUsed": 170,
+      "createdAt": "2026-09-15T09:08:58.906Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1",
+      "userId": "usr_demo_1",
+      "tool": "codeReviewer",
+      "title": "React useEffect memory leak inspection",
+      "tokensUsed": 450,
+      "createdAt": "2026-09-14T10:15:00.000Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_2",
+      "userId": "usr_demo_1",
+      "tool": "resumeAnalyzer",
+      "title": "Senior Full Stack Engineer Resume",
+      "tokensUsed": 620,
+      "createdAt": "2026-09-14T14:20:00.000Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_3",
+      "userId": "usr_demo_1",
+      "tool": "blogGenerator",
+      "title": "The Future of Autonomous AI Agents in 2026",
+      "tokensUsed": 890,
+      "createdAt": "2026-09-15T09:30:00.000Z",
+      "status": "completed"
+    }
+  ],
+  "chatHistories": [
+    {
+      "id": "chat_1",
+      "userId": "usr_demo_1",
+      "title": "Architecting a Microservices Event Bus",
+      "createdAt": "2026-09-14T11:00:00.000Z",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the best way to handle saga patterns in Kafka?"
+        },
+        {
+          "role": "assistant",
+          "content": "To implement sagas with Kafka, choreograph events through dedicated command & reply topics with compensation handlers to guarantee eventual consistency."
+        }
+      ]
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "log_1789463860383",
+      "action": "SUBSCRIPTION_UPGRADE",
+      "actor": "demo@saas.ai",
+      "details": "Upgraded subscription to Starter Free ($0/mo)",
+      "timestamp": "2026-09-15T09:17:40.383Z"
+    },
+    {
+      "id": "log_1789463338929",
+      "action": "SUBSCRIPTION_UPGRADE",
+      "actor": "demo@saas.ai",
+      "details": "Upgraded subscription to Enterprise Ultra ($99/mo)",
+      "timestamp": "2026-09-15T09:08:58.929Z"
+    },
+    {
+      "id": "log_1",
+      "action": "USER_REGISTER",
+      "actor": "admin@saas.ai",
+      "details": "Seeded system admin account",
+      "timestamp": "2026-01-10T10:00:00.000Z"
+    },
+    {
+      "id": "log_2",
+      "action": "SUBSCRIPTION_UPGRADE",
+      "actor": "demo@saas.ai",
+      "details": "Upgraded plan to Pro ($29/mo)",
+      "timestamp": "2026-02-01T14:35:00.000Z"
+    }
+  ]
+}
