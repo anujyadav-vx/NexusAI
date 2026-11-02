@@ -7,7 +7,7 @@
       "passwordHash": "$2a$10$95IglrVnIuV7q0vL9fDquOhXoW.y9Zl7KxV0j42Zk.L9Q/qGq8uC6",
       "role": "admin",
       "plan": "enterprise",
-      "tokensUsed": 14250,
+      "tokensUsed": 14858,
       "tokenLimit": 1000000,
       "createdAt": "2026-01-10T10:00:00.000Z",
       "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
@@ -44,6 +44,15 @@
     }
   ],
   "aiRequests": [
+    {
+      "id": "req_1793635741160_d17a",
+      "userId": "usr_admin_1",
+      "tool": "chatAssistant",
+      "title": "What is CQRS architecture?...",
+      "tokensUsed": 608,
+      "createdAt": "2026-11-02T16:09:01.160Z",
+      "status": "completed"
+    },
     {
       "id": "req_1789463853858_6w95",
       "userId": "usr_demo_1",

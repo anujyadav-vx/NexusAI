@@ -1,6 +1,9 @@
 // Production-Ready Unified AI Generation Service
-// Connects to Google Gemini API (gemini-1.5-flash, gemini-2.0-flash) and OpenAI (gpt-4o-mini, gpt-4o),
+// Connects to OpenRouter (meta-llama, mistral), OpenAI (gpt-4o, gpt-4o-mini),
+// and Google Gemini API (gemini-3.8-flash, gemini-flash-latest),
 // with an intelligent contextual fallback engine that produces realistic structured outputs even without API keys.
+
+import 'dotenv/config';
 
 export class AIService {
   static calculateTokens(text) {
@@ -10,21 +13,22 @@ export class AIService {
 
   // Detect which LLM provider has an active key
   static getActiveProvider(customHeaders = {}) {
-    const geminiKey = customHeaders['x-gemini-key'] || process.env.GEMINI_API_KEY;
     const openaiKey = customHeaders['x-openai-key'] || process.env.OPENAI_API_KEY;
+    const geminiKey = customHeaders['x-gemini-key'] || process.env.GEMINI_API_KEY;
 
+    if (openaiKey && openaiKey.trim() !== '') {
+      const isOpenRouter = openaiKey.trim().startsWith('sk-or-v1-') || (process.env.OPENAI_BASE_URL && process.env.OPENAI_BASE_URL.includes('openrouter'));
+      return { provider: isOpenRouter ? 'openrouter' : 'openai', apiKey: openaiKey.trim() };
+    }
     if (geminiKey && geminiKey.trim() !== '') {
       return { provider: 'gemini', apiKey: geminiKey.trim() };
-    }
-    if (openaiKey && openaiKey.trim() !== '') {
-      return { provider: 'openai', apiKey: openaiKey.trim() };
     }
     return { provider: 'nexus-generative-core', apiKey: null };
   }
 
   // Core caller for Google Gemini API
   static async callGemini({ systemInstruction, prompt, apiKey, jsonMode = false }) {
-    const model = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+    const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const body = {
@@ -66,35 +70,47 @@ export class AIService {
     };
   }
 
-  // Core caller for OpenAI API
+  // Core caller for OpenAI / OpenRouter API
   static async callOpenAI({ systemInstruction, prompt, apiKey, jsonMode = false }) {
-    const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-    const baseUrl = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
+    const isOpenRouter = apiKey.startsWith('sk-or-v1-') || (process.env.OPENAI_BASE_URL && process.env.OPENAI_BASE_URL.includes('openrouter'));
+    const defaultModel = isOpenRouter ? 'meta-llama/llama-3.3-70b-instruct' : 'gpt-4o-mini';
+    const model = process.env.OPENAI_MODEL || defaultModel;
+    const baseUrl = process.env.OPENAI_BASE_URL || (isOpenRouter ? 'https://openrouter.ai/api/v1' : 'https://api.openai.com/v1');
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    };
+
+    if (isOpenRouter) {
+      headers['HTTP-Referer'] = 'http://localhost:5173';
+      headers['X-Title'] = 'NexusAI';
+    }
 
     const messages = [];
     if (systemInstruction) {
-      messages.push({ role: 'system', content: systemInstruction });
+      messages.push({
+        role: 'system',
+        content: systemInstruction + (jsonMode ? ' Respond strictly with valid JSON. Do not include markdown code block backticks.' : '')
+      });
     }
     messages.push({ role: 'user', content: prompt });
 
     const startTime = Date.now();
     const res = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
+      headers,
       body: JSON.stringify({
         model,
         messages,
         temperature: 0.7,
-        ...(jsonMode ? { response_format: { type: 'json_object' } } : {})
+        ...(jsonMode && !isOpenRouter ? { response_format: { type: 'json_object' } } : {})
       })
     });
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `OpenAI API returned status ${res.status}`);
+      throw new Error(errData.error?.message || `AI API returned status ${res.status}`);
     }
 
     const data = await res.json();
@@ -105,26 +121,31 @@ export class AIService {
       text: text.trim(),
       tokensUsed: data.usage?.total_tokens || AIService.calculateTokens(prompt + text),
       model,
-      provider: 'OpenAI',
+      provider: isOpenRouter ? `OpenRouter (${model})` : 'OpenAI',
       latency
     };
   }
 
-  // Unified dispatcher: Tries live LLM first, falls back smoothly to offline intelligence
+  // Unified dispatcher: Tries live LLMs with priority and fallback
   static async generateUnified({ systemInstruction, prompt, jsonMode = false, customHeaders = {} }) {
-    const active = this.getActiveProvider(customHeaders);
+    const openaiKey = (customHeaders['x-openai-key'] || process.env.OPENAI_API_KEY || '').trim();
+    const geminiKey = (customHeaders['x-gemini-key'] || process.env.GEMINI_API_KEY || '').trim();
 
-    if (active.provider === 'gemini') {
+    // 1. Try OpenAI / OpenRouter first if key is present
+    if (openaiKey) {
       try {
-        return await this.callGemini({ systemInstruction, prompt, apiKey: active.apiKey, jsonMode });
+        return await this.callOpenAI({ systemInstruction, prompt, apiKey: openaiKey, jsonMode });
+      } catch (err) {
+        console.warn(`[AI Engine] OpenAI/OpenRouter call failed (${err.message}). Trying secondary options...`);
+      }
+    }
+
+    // 2. Try Gemini if key is present
+    if (geminiKey) {
+      try {
+        return await this.callGemini({ systemInstruction, prompt, apiKey: geminiKey, jsonMode });
       } catch (err) {
         console.warn(`[AI Engine] Gemini API call failed (${err.message}). Using local generative engine.`);
-      }
-    } else if (active.provider === 'openai') {
-      try {
-        return await this.callOpenAI({ systemInstruction, prompt, apiKey: active.apiKey, jsonMode });
-      } catch (err) {
-        console.warn(`[AI Engine] OpenAI API call failed (${err.message}). Using local generative engine.`);
       }
     }
 
@@ -133,11 +154,12 @@ export class AIService {
 
   // Helper to extract clean JSON
   static safeJsonParse(text, fallback) {
+    if (!text) return fallback;
     try {
       // Strip markdown code fences if present (```json ... ```)
       const cleaned = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
       return JSON.parse(cleaned);
-    } catch (err) {
+    } catch {
       return fallback;
     }
   }
@@ -627,13 +649,13 @@ LIMIT 5;`;
           apiKey: apiKey.trim()
         });
         return { success: true, message: `Connected to Google Gemini successfully! (${testRes.latency}ms)`, model: testRes.model };
-      } else if (provider === 'openai') {
+      } else if (provider === 'openai' || provider === 'openrouter') {
         const testRes = await this.callOpenAI({
           systemInstruction: 'You are a test ping bot.',
           prompt: 'Respond with exactly: PING_OK',
           apiKey: apiKey.trim()
         });
-        return { success: true, message: `Connected to OpenAI successfully! (${testRes.latency}ms)`, model: testRes.model };
+        return { success: true, message: `Connected to ${testRes.provider} successfully! (${testRes.latency}ms)`, model: testRes.model };
       } else {
         return { success: false, message: `Unknown provider "${provider}". Use "gemini" or "openai".` };
       }

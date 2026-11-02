@@ -1,4 +1,13 @@
 // Enterprise MongoDB Service with dynamic Mongoose support and graceful fallback
+import 'dotenv/config';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DATA_DIR = path.join(__dirname, '..', 'data');
+const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 let mongoose = null;
 let isConnected = false;
@@ -33,7 +42,8 @@ export async function initMongo() {
   try {
     m.set('strictQuery', false);
     await m.connect(uri, {
-      serverSelectionTimeoutMS: 5000,
+      dbName: process.env.MONGODB_DB_NAME || 'nexusai',
+      serverSelectionTimeoutMS: 8000,
       connectTimeoutMS: 10000
     });
 
@@ -90,6 +100,22 @@ export async function initMongo() {
       models.AuditLog = m.models.AuditLog || m.model('AuditLog', AuditLogSchema);
     }
 
+    // Auto-seed initial users if collection is empty
+    try {
+      const count = await models.User.countDocuments();
+      if (count === 0 && fs.existsSync(DB_FILE)) {
+        const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+        if (Array.isArray(raw.users) && raw.users.length > 0) {
+          console.log(`🍃 Seeding initial users into MongoDB Atlas (${raw.users.length} users)...`);
+          for (const u of raw.users) {
+            await models.User.updateOne({ id: u.id }, { $set: u }, { upsert: true });
+          }
+        }
+      }
+    } catch (seedErr) {
+      console.warn('Notice: Non-blocking seed error:', seedErr.message);
+    }
+
     return { connected: true, models };
   } catch (err) {
     isConnected = false;
@@ -108,4 +134,3 @@ export function getMongoStatus() {
 }
 
 export { models };
-
