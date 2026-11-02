@@ -7,10 +7,8 @@ import {
   Sparkles,
   Copy,
   Check,
-  Tag,
   Clock,
-  BookOpen,
-  Share2
+  BookOpen
 } from 'lucide-react';
 
 export default function BlogGeneratorPage() {

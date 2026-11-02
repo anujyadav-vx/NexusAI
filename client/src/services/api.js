@@ -16,9 +16,19 @@ export const setAuthToken = (token) => {
 
 export async function request(endpoint, options = {}) {
   const token = getAuthToken();
+  const customGeminiKey = localStorage.getItem('nexus_gemini_key');
+  const customOpenaiKey = localStorage.getItem('nexus_openai_key');
+
   const headers = {
     ...options.headers
   };
+
+  if (customGeminiKey) {
+    headers['x-gemini-key'] = customGeminiKey;
+  }
+  if (customOpenaiKey) {
+    headers['x-openai-key'] = customOpenaiKey;
+  }
 
   // Only set Content-Type if body is not FormData
   if (!(options.body instanceof FormData)) {
@@ -83,6 +93,8 @@ export const api = {
   sqlGenerate: (payload) => request('/ai/sql-generator', { method: 'POST', body: JSON.stringify(payload) }),
   imageGenerate: (payload) => request('/ai/image-generator', { method: 'POST', body: JSON.stringify(payload) }),
   getHistory: () => request('/ai/history'),
+  getAiStatus: () => request('/ai/status'),
+  testAiConnection: (payload) => request('/ai/test-connection', { method: 'POST', body: JSON.stringify(payload) }),
 
   // Billing
   getPlans: () => request('/billing/plans'),

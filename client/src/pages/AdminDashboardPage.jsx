@@ -6,13 +6,9 @@ import {
   Users,
   DollarSign,
   Cpu,
-  Layers,
   Trash2,
-  UserCheck,
-  ShieldAlert,
   Activity,
-  Search,
-  Check
+  Search
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {

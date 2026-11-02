@@ -5,10 +5,7 @@ import {
   TrendingUp,
   Cpu,
   DollarSign,
-  Clock,
-  Layers,
-  ArrowUpRight,
-  PieChart
+  Clock
 } from 'lucide-react';
 
 export default function AnalyticsPage() {
@@ -39,7 +36,7 @@ export default function AnalyticsPage() {
     );
   }
 
-  const { totalRequests, tokensUsed, tokenLimit, usagePercentage, estimatedCostSaved, averageLatencyMs, toolBreakdown, dailyTrend } = data || {};
+  const { totalRequests, tokensUsed, usagePercentage, estimatedCostSaved, averageLatencyMs, toolBreakdown, dailyTrend } = data || {};
   const maxDailyTokens = Math.max(...(dailyTrend || []).map(d => d.tokens), 1000);
 
   return (

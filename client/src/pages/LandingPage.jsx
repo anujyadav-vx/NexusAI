@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import {
   Sparkles,
   ArrowRight,
-  ShieldCheck,
   Zap,
   Code2,
   FileCheck2,
@@ -12,10 +11,7 @@ import {
   FileText,
   Database,
   Image,
-  Check,
-  Star,
-  Layers,
-  BarChart3
+  Check
 } from 'lucide-react';
 
 export default function LandingPage() {

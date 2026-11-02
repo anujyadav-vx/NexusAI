@@ -5,14 +5,12 @@ import { useNotification } from '../context/NotificationContext';
 import {
   Send,
   Sparkles,
-  User,
-  Bot,
   Copy,
   Check,
   Trash2,
   Cpu,
-  Layers,
-  HelpCircle
+  User,
+  Bot
 } from 'lucide-react';
 
 export default function ChatAssistantPage() {
@@ -280,9 +278,14 @@ export default function ChatAssistantPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                flexShrink: 0
+                flexShrink: 0,
+                overflow: 'hidden'
               }}>
-                <User size={16} color="var(--text-secondary)" />
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <User size={16} color="var(--text-secondary)" />
+                )}
               </div>
             )}
           </div>

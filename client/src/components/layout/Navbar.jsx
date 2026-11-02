@@ -94,9 +94,7 @@ export default function Navbar() {
             display: 'flex',
             flexDirection: 'column',
             gap: '4px',
-            width: '140px',
-            display: 'none',
-            '@media (min-width: 640px)': { display: 'flex' }
+            width: '140px'
           }} className="sm-show">
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)' }}>
               <span>Quota</span>

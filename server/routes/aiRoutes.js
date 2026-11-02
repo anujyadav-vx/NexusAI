@@ -7,7 +7,9 @@ import {
   pdfSummarizer,
   sqlGenerator,
   imageGenerator,
-  getHistory
+  getHistory,
+  testAiConnection,
+  getAiStatus
 } from '../controllers/aiController.js';
 import { requireAuth } from '../middlewares/authMiddleware.js';
 import { upload } from '../middlewares/uploadMiddleware.js';
@@ -16,6 +18,8 @@ const router = express.Router();
 
 router.use(requireAuth);
 
+router.get('/status', getAiStatus);
+router.post('/test-connection', testAiConnection);
 router.post('/chat', chatAssistant);
 router.post('/resume-analyzer', upload.single('resumeFile'), resumeAnalyzer);
 router.post('/code-reviewer', codeReviewer);

@@ -6,11 +6,7 @@ import { useNotification } from '../context/NotificationContext';
 import {
   CreditCard,
   Check,
-  Zap,
-  Sparkles,
-  ShieldCheck,
-  Download,
-  AlertCircle
+  Download
 } from 'lucide-react';
 
 export default function BillingPage() {

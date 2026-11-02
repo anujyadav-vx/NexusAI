@@ -2,10 +2,13 @@
   "name": "ai-saas-dashboard-root",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Production-ready AI SaaS Dashboard (JavaScript Full Stack - No TypeScript)",
   "scripts": {
+    "dev": "node dev.js",
     "server": "node server/server.js",
     "client": "npm --prefix client run dev",
-    "build": "npm --prefix client run build"
+    "build": "npm --prefix client run build",
+    "test:mongo": "node server/scripts/testMongo.js"
   }
 }

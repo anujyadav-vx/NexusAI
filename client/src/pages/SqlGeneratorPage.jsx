@@ -7,10 +7,8 @@ import {
   Sparkles,
   Copy,
   Check,
-  Cpu,
   Terminal,
-  Zap,
-  HelpCircle
+  Zap
 } from 'lucide-react';
 
 export default function SqlGeneratorPage() {

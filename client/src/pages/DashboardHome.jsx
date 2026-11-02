@@ -295,7 +295,13 @@ export default function DashboardHome() {
               </tr>
             </thead>
             <tbody>
-              {history.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    Loading recent activity...
+                  </td>
+                </tr>
+              ) : history.length > 0 ? (
                 history.map((item) => (
                   <tr key={item.id} style={{ borderBottom: '1px solid var(--border-glass)' }}>
                     <td style={{ padding: '12px', fontWeight: 600 }}>

@@ -5,11 +5,8 @@ import { useNotification } from '../context/NotificationContext';
 import {
   FileSearch,
   Sparkles,
-  FileText,
   CheckCircle2,
   HelpCircle,
-  Upload,
-  ArrowRight,
   ListTodo
 } from 'lucide-react';
 

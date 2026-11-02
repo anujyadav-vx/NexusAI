@@ -4,11 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import {
   FileCheck2,
-  UploadCloud,
   Sparkles,
   AlertCircle,
   CheckCircle2,
-  ArrowRight,
   Copy,
   Check,
   Target,

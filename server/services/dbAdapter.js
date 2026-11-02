@@ -119,15 +119,25 @@ const initialData = {
   ]
 };
 
+import { initMongo, getMongoStatus, models } from './mongoService.js';
+
 class JsonDb {
   constructor() {
     this.init();
+    // Non-blocking initialization of MongoDB if URI is configured
+    initMongo().catch((err) => {
+      console.warn('MongoDB background connection attempt failed:', err.message);
+    });
   }
 
   init() {
     if (!fs.existsSync(DB_FILE)) {
       this.write(initialData);
     }
+  }
+
+  getDbStatus() {
+    return getMongoStatus();
   }
 
   read() {
@@ -170,6 +180,25 @@ class JsonDb {
     const items = this.getCollection(collection);
     items.unshift(item);
     this.setCollection(collection, items);
+
+    // Asynchronously sync to MongoDB if connected
+    if (getMongoStatus().connected && models) {
+      try {
+        const modelMap = {
+          users: models.User,
+          aiRequests: models.AiRequest,
+          subscriptions: models.Subscription,
+          auditLogs: models.AuditLog
+        };
+        const Model = modelMap[collection];
+        if (Model) {
+          Model.create(item).catch((e) => console.warn(`Mongo async sync error (${collection}):`, e.message));
+        }
+      } catch (err) {
+        // silent sync fallback
+      }
+    }
+
     return item;
   }
 
@@ -179,6 +208,25 @@ class JsonDb {
     if (index === -1) return null;
     items[index] = { ...items[index], ...updates };
     this.setCollection(collection, items);
+
+    // Asynchronously update MongoDB if connected
+    if (getMongoStatus().connected && models) {
+      try {
+        const modelMap = {
+          users: models.User,
+          aiRequests: models.AiRequest,
+          subscriptions: models.Subscription,
+          auditLogs: models.AuditLog
+        };
+        const Model = modelMap[collection];
+        if (Model) {
+          Model.updateOne({ id }, { $set: updates }).catch((e) => console.warn(`Mongo async update error (${collection}):`, e.message));
+        }
+      } catch (err) {
+        // silent sync fallback
+      }
+    }
+
     return items[index];
   }
 
@@ -186,6 +234,24 @@ class JsonDb {
     const items = this.getCollection(collection);
     const filtered = items.filter(item => item.id !== id);
     this.setCollection(collection, filtered);
+
+    if (getMongoStatus().connected && models) {
+      try {
+        const modelMap = {
+          users: models.User,
+          aiRequests: models.AiRequest,
+          subscriptions: models.Subscription,
+          auditLogs: models.AuditLog
+        };
+        const Model = modelMap[collection];
+        if (Model) {
+          Model.deleteOne({ id }).catch((e) => console.warn(`Mongo async delete error (${collection}):`, e.message));
+        }
+      } catch (err) {
+        // silent sync fallback
+      }
+    }
+
     return true;
   }
 }

@@ -35,7 +35,7 @@ export const chatAssistant = async (req, res) => {
       });
     }
 
-    const result = await AIService.chatAssistant({ messages, persona });
+    const result = await AIService.chatAssistant({ messages, persona, customHeaders: req.headers });
     const latestUserMsg = messages[messages.length - 1]?.content || 'Chat session';
     deductTokensAndLog(req.user, 'chatAssistant', latestUserMsg.slice(0, 40) + '...', result.tokensUsed);
 
@@ -72,7 +72,7 @@ export const resumeAnalyzer = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Token quota exceeded. Please upgrade your plan.' });
     }
 
-    const result = await AIService.resumeAnalyzer({ resumeText, targetRole });
+    const result = await AIService.resumeAnalyzer({ resumeText, targetRole, customHeaders: req.headers });
     deductTokensAndLog(req.user, 'resumeAnalyzer', `Resume analysis for ${targetRole}`, result.tokensUsed);
 
     return res.json({
@@ -97,7 +97,7 @@ export const codeReviewer = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Token quota exceeded. Please upgrade your plan.' });
     }
 
-    const result = await AIService.codeReviewer({ code, language: language || 'javascript' });
+    const result = await AIService.codeReviewer({ code, language: language || 'javascript', customHeaders: req.headers });
     deductTokensAndLog(req.user, 'codeReviewer', `Code Review (${language || 'code'})`, result.tokensUsed);
 
     return res.json({
@@ -122,7 +122,7 @@ export const blogGenerator = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Token quota exceeded. Please upgrade your plan.' });
     }
 
-    const result = await AIService.blogGenerator({ topic, tone, audience, length });
+    const result = await AIService.blogGenerator({ topic, tone, audience, length, customHeaders: req.headers });
     deductTokensAndLog(req.user, 'blogGenerator', `Article: ${topic.slice(0, 35)}...`, result.tokensUsed);
 
     return res.json({
@@ -155,7 +155,7 @@ export const pdfSummarizer = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Token quota exceeded. Please upgrade your plan.' });
     }
 
-    const result = await AIService.pdfSummarizer({ text, documentName, query });
+    const result = await AIService.pdfSummarizer({ text, documentName, query, customHeaders: req.headers });
     deductTokensAndLog(req.user, 'pdfSummarizer', `Summary: ${documentName}`, result.tokensUsed);
 
     return res.json({
@@ -180,7 +180,7 @@ export const sqlGenerator = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Token quota exceeded. Please upgrade your plan.' });
     }
 
-    const result = await AIService.sqlGenerator({ prompt, dialect, schema });
+    const result = await AIService.sqlGenerator({ prompt, dialect, schema, customHeaders: req.headers });
     deductTokensAndLog(req.user, 'sqlGenerator', `SQL: ${prompt.slice(0, 30)}...`, result.tokensUsed);
 
     return res.json({
@@ -232,4 +232,30 @@ export const getHistory = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to fetch AI history.' });
   }
+};
+
+export const testAiConnection = async (req, res) => {
+  try {
+    const { provider, apiKey } = req.body;
+    const keyToTest = apiKey || (provider === 'gemini' ? process.env.GEMINI_API_KEY : process.env.OPENAI_API_KEY);
+    const result = await AIService.testConnection({ provider, apiKey: keyToTest });
+    return res.json(result);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getAiStatus = (req, res) => {
+  const active = AIService.getActiveProvider(req.headers);
+  const dbStatus = db.getDbStatus();
+
+  return res.json({
+    success: true,
+    data: {
+      provider: active.provider,
+      hasServerKey: active.provider !== 'nexus-generative-core',
+      activeModel: active.provider === 'gemini' ? (process.env.GEMINI_MODEL || 'gemini-1.5-flash') : active.provider === 'openai' ? (process.env.OPENAI_MODEL || 'gpt-4o-mini') : 'nexus-offline-core',
+      database: dbStatus
+    }
+  });
 };

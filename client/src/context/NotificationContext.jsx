@@ -6,6 +6,10 @@ const NotificationContext = createContext();
 export function NotificationProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
+  const removeToast = useCallback((id) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
+
   const addToast = useCallback((message, type = 'info', duration = 4000) => {
     const id = `toast_${Date.now()}_${Math.random()}`;
     const newToast = { id, message, type };
@@ -17,11 +21,7 @@ export function NotificationProvider({ children }) {
         removeToast(id);
       }, duration);
     }
-  }, []);
-
-  const removeToast = useCallback((id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  }, []);
+  }, [removeToast]);
 
   return (
     <NotificationContext.Provider value={{ addToast, removeToast }}>

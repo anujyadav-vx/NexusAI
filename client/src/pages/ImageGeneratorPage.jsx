@@ -5,12 +5,7 @@ import { useNotification } from '../context/NotificationContext';
 import {
   Image as ImageIcon,
   Sparkles,
-  Download,
-  Share2,
-  Cpu,
-  Layers,
-  Sliders,
-  ExternalLink
+  Download
 } from 'lucide-react';
 
 export default function ImageGeneratorPage() {

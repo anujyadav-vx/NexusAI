@@ -5,14 +5,11 @@ import { useNotification } from '../context/NotificationContext';
 import {
   Code2,
   Sparkles,
-  ShieldAlert,
   Zap,
   Copy,
   Check,
   Cpu,
-  Clock,
-  CheckCircle2,
-  AlertTriangle
+  Clock
 } from 'lucide-react';
 
 export default function CodeReviewerPage() {
