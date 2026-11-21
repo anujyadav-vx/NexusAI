@@ -1,6 +1,18 @@
 {
   "users": [
     {
+      "id": "usr_1793635985920_wpyef",
+      "name": "anuj",
+      "email": "anujy0502@gmail.com",
+      "passwordHash": "$2a$10$3QKIkPZveBQkIYsjl1v8TuN5LtaLxCfvDgSxghY3iOEeg07fiN0Bq",
+      "role": "user",
+      "plan": "pro",
+      "tokensUsed": 5442,
+      "tokenLimit": 50000,
+      "createdAt": "2026-11-02T16:13:05.920Z",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=anuj"
+    },
+    {
       "id": "usr_admin_1",
       "name": "Alex Vance (Admin)",
       "email": "admin@saas.ai",
@@ -18,14 +30,22 @@
       "email": "demo@saas.ai",
       "passwordHash": "$2a$10$89L7yJmJv9tWvQpG/9mDpuO4Z8/21G1hNqW3e5R7tY9uI1oP3s5eW",
       "role": "user",
-      "plan": "free",
-      "tokensUsed": 14280,
-      "tokenLimit": 5000,
+      "plan": "pro",
+      "tokensUsed": 16380,
+      "tokenLimit": 50000,
       "createdAt": "2026-02-01T14:30:00.000Z",
       "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
     }
   ],
   "subscriptions": [
+    {
+      "id": "sub_1793635985926",
+      "userId": "usr_1793635985920_wpyef",
+      "plan": "pro",
+      "status": "active",
+      "amount": 29,
+      "currentPeriodEnd": "2026-12-02T16:18:00.394Z"
+    },
     {
       "id": "sub_1",
       "userId": "usr_admin_1",
@@ -37,13 +57,112 @@
     {
       "id": "sub_2",
       "userId": "usr_demo_1",
-      "plan": "free",
+      "plan": "pro",
       "status": "active",
-      "amount": 0,
-      "currentPeriodEnd": "2026-10-15T09:17:40.376Z"
+      "amount": 29,
+      "currentPeriodEnd": "2026-12-21T14:05:49.098Z"
     }
   ],
   "aiRequests": [
+    {
+      "id": "req_1795270005823_gujl",
+      "userId": "usr_demo_1",
+      "tool": "chatAssistant",
+      "title": "what AEM...",
+      "tokensUsed": 630,
+      "createdAt": "2026-11-21T14:06:45.823Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1795269980427_hr6q",
+      "userId": "usr_demo_1",
+      "tool": "chatAssistant",
+      "title": "Design an event-driven architecture with...",
+      "tokensUsed": 967,
+      "createdAt": "2026-11-21T14:06:20.427Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1795269906226_5hc2",
+      "userId": "usr_demo_1",
+      "tool": "resumeAnalyzer",
+      "title": "Resume analysis for Senior Full Stack Engineer",
+      "tokensUsed": 503,
+      "createdAt": "2026-11-21T14:05:06.226Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1793636175660_uvwd",
+      "userId": "usr_1793635985920_wpyef",
+      "tool": "imageGenerator",
+      "title": "Image: luffy...",
+      "tokensUsed": 800,
+      "createdAt": "2026-11-02T16:16:15.660Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1793636174735_iz2p",
+      "userId": "usr_1793635985920_wpyef",
+      "tool": "imageGenerator",
+      "title": "Image: luffy...",
+      "tokensUsed": 800,
+      "createdAt": "2026-11-02T16:16:14.735Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1793636173551_ea01",
+      "userId": "usr_1793635985920_wpyef",
+      "tool": "imageGenerator",
+      "title": "Image: luffy...",
+      "tokensUsed": 800,
+      "createdAt": "2026-11-02T16:16:13.551Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1793636171665_9w37",
+      "userId": "usr_1793635985920_wpyef",
+      "tool": "imageGenerator",
+      "title": "Image: luffy...",
+      "tokensUsed": 800,
+      "createdAt": "2026-11-02T16:16:11.665Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1793636159684_t2uj",
+      "userId": "usr_1793635985920_wpyef",
+      "tool": "imageGenerator",
+      "title": "Image: Cyberpunk neon skyscraper with...",
+      "tokensUsed": 800,
+      "createdAt": "2026-11-02T16:15:59.684Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1793636128358_wwhp",
+      "userId": "usr_1793635985920_wpyef",
+      "tool": "resumeAnalyzer",
+      "title": "Resume analysis for Senior Full Stack Engineer",
+      "tokensUsed": 516,
+      "createdAt": "2026-11-02T16:15:28.358Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1793636103754_xg69",
+      "userId": "usr_1793635985920_wpyef",
+      "tool": "chatAssistant",
+      "title": "2+2...",
+      "tokensUsed": 73,
+      "createdAt": "2026-11-02T16:15:03.754Z",
+      "status": "completed"
+    },
+    {
+      "id": "req_1793636039350_dguf",
+      "userId": "usr_1793635985920_wpyef",
+      "tool": "chatAssistant",
+      "title": "Design an event-driven architecture with...",
+      "tokensUsed": 853,
+      "createdAt": "2026-11-02T16:13:59.350Z",
+      "status": "completed"
+    },
     {
       "id": "req_1793635741160_d17a",
       "userId": "usr_admin_1",
@@ -226,6 +345,48 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "log_1795269949102",
+      "action": "SUBSCRIPTION_UPGRADE",
+      "actor": "demo@saas.ai",
+      "details": "Upgraded subscription to Professional ($29/mo)",
+      "timestamp": "2026-11-21T14:05:49.102Z"
+    },
+    {
+      "id": "log_1795269924247",
+      "action": "SUBSCRIPTION_UPGRADE",
+      "actor": "demo@saas.ai",
+      "details": "Upgraded subscription to Starter Free ($0/mo)",
+      "timestamp": "2026-11-21T14:05:24.247Z"
+    },
+    {
+      "id": "log_1795269919759",
+      "action": "SUBSCRIPTION_UPGRADE",
+      "actor": "demo@saas.ai",
+      "details": "Upgraded subscription to Enterprise Ultra ($99/mo)",
+      "timestamp": "2026-11-21T14:05:19.759Z"
+    },
+    {
+      "id": "log_1795269876995",
+      "action": "SUBSCRIPTION_UPGRADE",
+      "actor": "demo@saas.ai",
+      "details": "Upgraded subscription to Professional ($29/mo)",
+      "timestamp": "2026-11-21T14:04:36.995Z"
+    },
+    {
+      "id": "log_1793636280400",
+      "action": "SUBSCRIPTION_UPGRADE",
+      "actor": "anujy0502@gmail.com",
+      "details": "Upgraded subscription to Professional ($29/mo)",
+      "timestamp": "2026-11-02T16:18:00.400Z"
+    },
+    {
+      "id": "log_1793635985930",
+      "action": "USER_REGISTER",
+      "actor": "anujy0502@gmail.com",
+      "details": "New user registered",
+      "timestamp": "2026-11-02T16:13:05.930Z"
+    },
     {
       "id": "log_1789463860383",
       "action": "SUBSCRIPTION_UPGRADE",

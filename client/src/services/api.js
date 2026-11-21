@@ -1,47 +1,47 @@
 // Central API Client with JWT authorization and error handling
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
 
 export const getAuthToken = () => {
-  return localStorage.getItem('saas_token');
+  return localStorage.getItem("saas_token");
 };
 
 export const setAuthToken = (token) => {
   if (token) {
-    localStorage.setItem('saas_token', token);
+    localStorage.setItem("saas_token", token);
   } else {
-    localStorage.removeItem('saas_token');
+    localStorage.removeItem("saas_token");
   }
 };
 
 export async function request(endpoint, options = {}) {
   const token = getAuthToken();
-  const customGeminiKey = localStorage.getItem('nexus_gemini_key');
-  const customOpenaiKey = localStorage.getItem('nexus_openai_key');
+  const customGeminiKey = localStorage.getItem("nexus_gemini_key");
+  const customOpenaiKey = localStorage.getItem("nexus_openai_key");
 
   const headers = {
-    ...options.headers
+    ...options.headers,
   };
 
   if (customGeminiKey) {
-    headers['x-gemini-key'] = customGeminiKey;
+    headers["x-gemini-key"] = customGeminiKey;
   }
   if (customOpenaiKey) {
-    headers['x-openai-key'] = customOpenaiKey;
+    headers["x-openai-key"] = customOpenaiKey;
   }
 
   // Only set Content-Type if body is not FormData
   if (!(options.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
+    headers["Content-Type"] = "application/json";
   }
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   const config = {
     ...options,
-    headers
+    headers,
   };
 
   try {
@@ -49,17 +49,22 @@ export async function request(endpoint, options = {}) {
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      if (res.status === 401 && !endpoint.includes('/auth/login')) {
+      if (res.status === 401 && !endpoint.includes("/auth/login")) {
         // Clear token on authentication failure
         setAuthToken(null);
-        window.location.href = '/login?expired=true';
+        window.location.href = "/login?expired=true";
       }
-      throw new Error(data.message || `Request failed with status ${res.status}`);
+      throw new Error(
+        data.message || `Request failed with status ${res.status}`,
+      );
     }
 
     return data;
   } catch (err) {
-    console.error(`API Error on [${options.method || 'GET'} ${endpoint}]:`, err);
+    console.error(
+      `API Error on [${options.method || "GET"} ${endpoint}]:`,
+      err,
+    );
     throw err;
   }
 }
@@ -67,45 +72,84 @@ export async function request(endpoint, options = {}) {
 // API Service helper functions
 export const api = {
   // Auth
-  login: (credentials) => request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
-  register: (userData) => request('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),
-  getProfile: () => request('/auth/profile'),
-  updateProfile: (data) => request('/auth/profile', { method: 'PUT', body: JSON.stringify(data) }),
+  login: (credentials) =>
+    request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    }),
+  register: (userData) =>
+    request("/auth/register", {
+      method: "POST",
+      body: JSON.stringify(userData),
+    }),
+  getProfile: () => request("/auth/profile"),
+  updateProfile: (data) =>
+    request("/auth/profile", { method: "PUT", body: JSON.stringify(data) }),
 
   // AI Tools
-  chat: (payload) => request('/ai/chat', { method: 'POST', body: JSON.stringify(payload) }),
+  chat: (payload) =>
+    request("/ai/chat", { method: "POST", body: JSON.stringify(payload) }),
   resumeAnalyze: (formDataOrJson) => {
     const isFormData = formDataOrJson instanceof FormData;
-    return request('/ai/resume-analyzer', {
-      method: 'POST',
-      body: isFormData ? formDataOrJson : JSON.stringify(formDataOrJson)
+    return request("/ai/resume-analyzer", {
+      method: "POST",
+      body: isFormData ? formDataOrJson : JSON.stringify(formDataOrJson),
     });
   },
-  codeReview: (payload) => request('/ai/code-reviewer', { method: 'POST', body: JSON.stringify(payload) }),
-  blogGenerate: (payload) => request('/ai/blog-generator', { method: 'POST', body: JSON.stringify(payload) }),
+  codeReview: (payload) =>
+    request("/ai/code-reviewer", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  blogGenerate: (payload) =>
+    request("/ai/blog-generator", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   pdfSummarize: (formDataOrJson) => {
     const isFormData = formDataOrJson instanceof FormData;
-    return request('/ai/pdf-summarizer', {
-      method: 'POST',
-      body: isFormData ? formDataOrJson : JSON.stringify(formDataOrJson)
+    return request("/ai/pdf-summarizer", {
+      method: "POST",
+      body: isFormData ? formDataOrJson : JSON.stringify(formDataOrJson),
     });
   },
-  sqlGenerate: (payload) => request('/ai/sql-generator', { method: 'POST', body: JSON.stringify(payload) }),
-  imageGenerate: (payload) => request('/ai/image-generator', { method: 'POST', body: JSON.stringify(payload) }),
-  getHistory: () => request('/ai/history'),
-  getAiStatus: () => request('/ai/status'),
-  testAiConnection: (payload) => request('/ai/test-connection', { method: 'POST', body: JSON.stringify(payload) }),
+  sqlGenerate: (payload) =>
+    request("/ai/sql-generator", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  imageGenerate: (payload) =>
+    request("/ai/image-generator", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  getHistory: () => request("/ai/history"),
+  getAiStatus: () => request("/ai/status"),
+  testAiConnection: (payload) =>
+    request("/ai/test-connection", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 
   // Billing
-  getPlans: () => request('/billing/plans'),
-  upgradePlan: (planId) => request('/billing/upgrade', { method: 'POST', body: JSON.stringify({ planId }) }),
-  getInvoices: () => request('/billing/invoices'),
+  getPlans: () => request("/billing/plans"),
+  upgradePlan: (planId) =>
+    request("/billing/upgrade", {
+      method: "POST",
+      body: JSON.stringify({ planId }),
+    }),
+  getInvoices: () => request("/billing/invoices"),
 
   // Analytics
-  getAnalytics: () => request('/analytics/usage'),
+  getAnalytics: () => request("/analytics/usage"),
 
   // Admin
-  getAdminOverview: () => request('/admin/overview'),
-  updateUserRole: (userId, data) => request(`/admin/users/${userId}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteUser: (userId) => request(`/admin/users/${userId}`, { method: 'DELETE' })
+  getAdminOverview: () => request("/admin/overview"),
+  updateUserRole: (userId, data) =>
+    request(`/admin/users/${userId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  deleteUser: (userId) =>
+    request(`/admin/users/${userId}`, { method: "DELETE" }),
 };
