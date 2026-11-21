@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { api } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
@@ -53,10 +55,14 @@ export default function ChatAssistantPage() {
   ];
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
+    const container = messagesEndRef.current?.parentElement;
+
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }, [messages, loading]);
 
   const handleSend = async (textToSend) => {
@@ -213,7 +219,15 @@ export default function ChatAssistantPage() {
                   <span>{msg.timestamp}</span>
                 </div>
 
-                <div className="chat-message-bubble">{msg.content}</div>
+                <div className="chat-message-bubble">
+                  {msg.role === "assistant" ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {msg.content}
+                    </ReactMarkdown>
+                  ) : (
+                    msg.content
+                  )}
+                </div>
 
                 <div className="chat-message-footer">
                   {msg.tokensUsed != null && (
