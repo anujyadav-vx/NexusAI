@@ -1,215 +1,358 @@
-import React, { useState } from 'react';
-import { api } from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
+import React, { useState } from "react";
+import { api } from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
 import {
   FileSearch,
   Sparkles,
   CheckCircle2,
   HelpCircle,
-  ListTodo
-} from 'lucide-react';
+  ListTodo,
+  LoaderCircle,
+  FileText,
+  ArrowRight,
+  MessageSquareText,
+} from "lucide-react";
 
 export default function PdfSummarizerPage() {
   const { refreshUserData } = useAuth();
   const { addToast } = useNotification();
-  const [documentName, setDocumentName] = useState('Enterprise_Q3_Strategic_Review.pdf');
-  const [text, setText] = useState(
-    "Executive Overview: The company achieved 38% Year-over-Year revenue growth in Q3 2026 driven by expansion of our AI Developer Cloud platform. Infrastructure efficiency initiatives reduced per-user compute costs by 22% using automated workload orchestration. Overall Customer Satisfaction (CSAT) score reached 94.2%. Priorities for next quarter include achieving SOC2 Type II certification, expanding self-serve enterprise tier onboarding, and rolling out regional multi-zone disaster recovery."
+
+  const [documentName, setDocumentName] = useState(
+    "Enterprise_Q3_Strategic_Review.pdf",
   );
-  const [query, setQuery] = useState('What are the top 3 priorities for next quarter?');
+
+  const [text, setText] = useState(
+    "Executive Overview: The company achieved 38% Year-over-Year revenue growth in Q3 2026 driven by expansion of our AI Developer Cloud platform. Infrastructure efficiency initiatives reduced per-user compute costs by 22% using automated workload orchestration. Overall Customer Satisfaction (CSAT) score reached 94.2%. Priorities for next quarter include achieving SOC2 Type II certification, expanding self-serve enterprise tier onboarding, and rolling out regional multi-zone disaster recovery.",
+  );
+
+  const [query, setQuery] = useState(
+    "What are the top 3 priorities for next quarter?",
+  );
+
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState(null);
 
   const handleSummarize = async (e) => {
     e.preventDefault();
+
+    if (!text.trim()) {
+      addToast("Please enter document content first.", "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await api.pdfSummarize({ text, documentName, query });
+      const res = await api.pdfSummarize({
+        text,
+        documentName,
+        query,
+      });
+
       if (res.success && res.data) {
         setSummary(res.data);
         refreshUserData();
-        addToast('Document summarized successfully!', 'success');
+        addToast("Document summarized successfully!", "success");
       } else {
-        throw new Error(res.message || 'Summarization failed');
+        throw new Error(res.message || "Summarization failed");
       }
     } catch (err) {
-      addToast(err.message || 'Failed to summarize document.', 'error');
+      addToast(err.message || "Failed to summarize document.", "error");
     } finally {
       setLoading(false);
     }
   };
 
+  const keyTakeaways = Array.isArray(summary?.keyTakeaways)
+    ? summary.keyTakeaways
+    : [];
+
+  const actionItems = Array.isArray(summary?.actionItems)
+    ? summary.actionItems
+    : [];
+
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <FileSearch size={20} color="#fff" />
+    <div className="pdf-page">
+      {/* Page Header */}
+      <header className="pdf-header">
+        <div className="pdf-heading-main">
+          <div className="pdf-icon">
+            <FileSearch size={21} />
           </div>
-          <h1 style={{ fontSize: '22px', fontWeight: 800 }}>AI Document & PDF Summarizer</h1>
+
+          <div>
+            <div className="pdf-eyebrow">AI WORKSPACE / DOCUMENTS</div>
+            <h1>PDF Summarizer</h1>
+          </div>
         </div>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-          Distill multi-page PDFs, contracts, and research reports into executive summaries, key bullet points, and specific answer extractions.
+
+        <p className="pdf-description">
+          Turn lengthy documents into clear executive summaries, key insights,
+          and actionable information.
         </p>
-      </div>
+      </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(400px, 1.5fr)', gap: '24px', alignItems: 'start' }}>
-        {/* Input */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <form onSubmit={handleSummarize} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      {/* Workspace */}
+      <div className="pdf-workspace">
+        {/* Input Panel */}
+        <section className="pdf-input-panel">
+          <div className="pdf-panel-heading">
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Document Name</label>
-              <input
-                type="text"
-                className="glass-input"
-                style={{ width: '100%' }}
-                value={documentName}
-                onChange={(e) => setDocumentName(e.target.value)}
-                required
-              />
+              <h2>Document input</h2>
+              <p>Provide the content you want AI to analyze.</p>
             </div>
 
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600 }}>Document Content</label>
-                <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Paste raw text or extract</span>
-              </div>
-              <textarea
-                className="glass-input"
-                rows={9}
-                style={{ width: '100%', resize: 'vertical', fontSize: '13px', lineHeight: 1.5 }}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                required
-              />
-            </div>
+            <span className="pdf-step">STEP 01</span>
+          </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
-                Target Question / Query (Optional)
-              </label>
-              <div style={{ position: 'relative' }}>
-                <HelpCircle size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+          <form className="pdf-form" onSubmit={handleSummarize}>
+            {/* Document Name */}
+            <div className="pdf-field">
+              <label htmlFor="pdf-document-name">Document name</label>
+
+              <div className="pdf-name-input">
+                <FileText size={16} />
                 <input
+                  id="pdf-document-name"
                   type="text"
-                  className="glass-input"
-                  style={{ width: '100%', paddingLeft: '38px', fontSize: '13px' }}
-                  placeholder="e.g. What is the projected ROI or deadline?"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  value={documentName}
+                  onChange={(e) => setDocumentName(e.target.value)}
+                  placeholder="Enter document name"
+                  required
                 />
               </div>
             </div>
 
+            {/* Document Content */}
+            <div className="pdf-field">
+              <div className="pdf-label-row">
+                <label htmlFor="pdf-content">Document content</label>
+                <span>Required</span>
+              </div>
+
+              <textarea
+                id="pdf-content"
+                className="pdf-content-input"
+                rows={11}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Paste your document text here..."
+                required
+              />
+
+              <div className="pdf-input-hint">
+                <span>Paste extracted text from your PDF document.</span>
+                <span>{text.length.toLocaleString()} characters</span>
+              </div>
+            </div>
+
+            {/* Question */}
+            <div className="pdf-field">
+              <label htmlFor="pdf-query">
+                Ask a question
+                <span className="pdf-optional">Optional</span>
+              </label>
+
+              <div className="pdf-query-input">
+                <HelpCircle size={16} />
+
+                <input
+                  id="pdf-query"
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="e.g. What are the key findings?"
+                />
+              </div>
+
+              <p className="pdf-field-hint">
+                Ask something specific to get a targeted answer from your
+                document.
+              </p>
+            </div>
+
+            {/* Submit */}
             <button
               type="submit"
-              disabled={loading}
-              className="gradient-btn-primary"
-              style={{
-                padding: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                fontSize: '14px'
-              }}
+              className="pdf-submit-btn"
+              disabled={loading || !text.trim() || !documentName.trim()}
             >
-              {loading ? <Sparkles size={16} className="animate-spin" /> : <FileSearch size={16} />}
-              {loading ? 'Synthesizing Document...' : 'Generate Executive Summary'}
+              {loading ? (
+                <>
+                  <LoaderCircle size={17} className="pdf-spinner" />
+                  Analyzing document...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={17} />
+                  Generate summary
+                  <ArrowRight size={16} />
+                </>
+              )}
             </button>
           </form>
-        </div>
 
-        {/* Results */}
-        <div>
+          <div className="pdf-privacy-note">
+            <FileSearch size={15} />
+            <span>AI-powered document analysis</span>
+          </div>
+        </section>
+
+        {/* Results Panel */}
+        <section className="pdf-results-panel">
           {summary ? (
-            <div className="glass-panel animate-fade-in" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '14px', borderBottom: '1px solid var(--border-glass)' }}>
-                <div>
-                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Analyzed File</div>
-                  <div style={{ fontSize: '16px', fontWeight: 700 }}>{summary.documentName}</div>
+            <div className="pdf-results animate-fade-in">
+              {/* Result Header */}
+              <div className="pdf-result-header">
+                <div className="pdf-result-title">
+                  <div className="pdf-result-icon">
+                    <FileText size={19} />
+                  </div>
+
+                  <div>
+                    <span className="pdf-result-eyebrow">
+                      ANALYSIS COMPLETE
+                    </span>
+                    <h2>Document insights</h2>
+                  </div>
                 </div>
-                <span style={{ fontSize: '12px', background: 'var(--bg-glass)', border: '1px solid var(--border-glass)', padding: '4px 10px', borderRadius: '12px', color: 'var(--text-secondary)' }}>
-                  ~{summary.pageCount} pages parsed
+
+                <span className="pdf-result-status">
+                  <CheckCircle2 size={14} />
+                  Completed
                 </span>
               </div>
 
-              {/* Executive Summary */}
-              <div>
-                <h3 style={{ fontSize: '13.5px', fontWeight: 700, marginBottom: '6px', color: 'var(--accent-purple)' }}>Executive Summary</h3>
-                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{summary.executiveSummary}</p>
+              {/* File Information */}
+              <div className="pdf-file-info">
+                <div className="pdf-file-details">
+                  <FileText size={17} />
+
+                  <div>
+                    <span>Analyzed document</span>
+                    <strong>{summary.documentName || documentName}</strong>
+                  </div>
+                </div>
+
+                {summary.pageCount != null && (
+                  <span className="pdf-page-count">
+                    ~{summary.pageCount} pages
+                  </span>
+                )}
               </div>
 
-              {/* Targeted Q&A if asked */}
+              {/* Executive Summary */}
+              <div className="pdf-result-section">
+                <div className="pdf-section-heading">
+                  <span className="pdf-section-number">01</span>
+                  <h3>Executive summary</h3>
+                </div>
+
+                <p className="pdf-summary-text">
+                  {summary.executiveSummary ||
+                    "No executive summary was returned."}
+                </p>
+              </div>
+
+              {/* Query Answer */}
               {summary.answerToQuery && (
-                <div style={{ background: 'rgba(139, 92, 246, 0.12)', border: '1px solid rgba(139, 92, 246, 0.3)', padding: '14px', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#c084fc', marginBottom: '4px' }}>
-                    Direct Answer to Your Query:
+                <div className="pdf-answer-box">
+                  <div className="pdf-answer-heading">
+                    <MessageSquareText size={16} />
+                    <span>Answer to your question</span>
                   </div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
-                    {summary.answerToQuery}
-                  </div>
+
+                  <p>{summary.answerToQuery}</p>
                 </div>
               )}
 
               {/* Key Takeaways */}
-              <div>
-                <h3 style={{ fontSize: '13.5px', fontWeight: 700, marginBottom: '8px' }}>Key Takeaways</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {summary.keyTakeaways.map((item, idx) => (
-                    <div key={idx} style={{ display: 'flex', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                      <CheckCircle2 size={16} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
-                      <span>{item}</span>
-                    </div>
-                  ))}
+              <div className="pdf-result-section">
+                <div className="pdf-section-heading">
+                  <span className="pdf-section-number">02</span>
+                  <h3>Key takeaways</h3>
+                  <span className="pdf-count">{keyTakeaways.length}</span>
                 </div>
+
+                {keyTakeaways.length > 0 ? (
+                  <div className="pdf-takeaways">
+                    {keyTakeaways.map((item, idx) => (
+                      <div className="pdf-takeaway" key={idx}>
+                        <CheckCircle2 size={17} />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="pdf-empty-result">
+                    No key takeaways were returned.
+                  </p>
+                )}
               </div>
 
               {/* Action Items */}
-              <div>
-                <h3 style={{ fontSize: '13.5px', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <ListTodo size={16} color="#f59e0b" /> Recommended Next Actions
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {summary.actionItems.map((action, idx) => (
-                    <div key={idx} style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                      • {action}
-                    </div>
-                  ))}
+              <div className="pdf-result-section">
+                <div className="pdf-section-heading">
+                  <span className="pdf-section-number">03</span>
+                  <h3>Recommended next actions</h3>
+                  <span className="pdf-count">{actionItems.length}</span>
                 </div>
+
+                {actionItems.length > 0 ? (
+                  <div className="pdf-action-list">
+                    {actionItems.map((action, idx) => (
+                      <div className="pdf-action-item" key={idx}>
+                        <span className="pdf-action-index">
+                          {String(idx + 1).padStart(2, "0")}
+                        </span>
+                        <span>{action}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="pdf-empty-result">
+                    No recommended actions were returned.
+                  </p>
+                )}
               </div>
             </div>
           ) : (
-            <div className="glass-panel" style={{
-              padding: '60px 24px',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-muted)'
-            }}>
-              <FileSearch size={48} color="var(--border-glass-glow)" style={{ marginBottom: '16px' }} />
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-                No Document Summarized Yet
-              </h3>
-              <p style={{ fontSize: '13px', maxWidth: '360px' }}>
-                Provide document text on the left and optional questions to extract precise insights.
+            /* Empty State */
+            <div className="pdf-empty-state">
+              <div className="pdf-empty-icon">
+                <FileSearch size={29} />
+              </div>
+
+              <h3>Your insights will appear here</h3>
+
+              <p>
+                Submit your document content to generate an executive summary,
+                extract important findings, and discover recommended actions.
               </p>
+
+              <div className="pdf-empty-features">
+                <div>
+                  <CheckCircle2 size={15} />
+                  Executive summary
+                </div>
+                <div>
+                  <CheckCircle2 size={15} />
+                  Key takeaways
+                </div>
+                <div>
+                  <CheckCircle2 size={15} />
+                  Action items
+                </div>
+              </div>
+
+              <div className="pdf-empty-bottom">
+                <Sparkles size={14} />
+                Powered by NexusAI
+              </div>
             </div>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );
