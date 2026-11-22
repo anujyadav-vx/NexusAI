@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '../services/api';
-import { useNotification } from '../context/NotificationContext';
+import React, { useState, useEffect } from "react";
+import { api } from "../services/api";
+import { useNotification } from "../context/NotificationContext";
 import {
   ShieldCheck,
   Users,
@@ -8,23 +8,31 @@ import {
   Cpu,
   Trash2,
   Activity,
-  Search
-} from 'lucide-react';
+  Search,
+  Shield,
+  Crown,
+  RefreshCw,
+  UserCog,
+  CalendarDays,
+  Database,
+} from "lucide-react";
 
 export default function AdminDashboardPage() {
   const { addToast } = useNotification();
+
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchOverview = async () => {
     try {
       const res = await api.getAdminOverview();
+
       if (res.success && res.data) {
         setOverview(res.data);
       }
     } catch (err) {
-      addToast(err.message || 'Failed to fetch admin metrics', 'error');
+      addToast(err.message || "Failed to fetch admin metrics", "error");
     } finally {
       setLoading(false);
     }
@@ -35,282 +43,397 @@ export default function AdminDashboardPage() {
   }, []);
 
   const handleRoleToggle = async (user) => {
-    const newRole = user.role === 'admin' ? 'user' : 'admin';
+    const newRole = user.role === "admin" ? "user" : "admin";
+
     try {
-      const res = await api.updateUserRole(user.id, { role: newRole });
+      const res = await api.updateUserRole(user.id, {
+        role: newRole,
+      });
+
       if (res.success) {
-        addToast(`Updated ${user.name}'s role to ${newRole}`, 'success');
+        addToast(`Updated ${user.name}'s role to ${newRole}`, "success");
         fetchOverview();
       }
     } catch (err) {
-      addToast(err.message || 'Failed to update role', 'error');
+      addToast(err.message || "Failed to update role", "error");
     }
   };
 
   const handlePlanChange = async (userId, newPlan) => {
     try {
-      const res = await api.updateUserRole(userId, { plan: newPlan });
+      const res = await api.updateUserRole(userId, {
+        plan: newPlan,
+      });
+
       if (res.success) {
-        addToast(`Updated user plan to ${newPlan}`, 'success');
+        addToast(`Updated user plan to ${newPlan}`, "success");
         fetchOverview();
       }
     } catch (err) {
-      addToast(err.message || 'Failed to update plan', 'error');
+      addToast(err.message || "Failed to update plan", "error");
     }
   };
 
   const handleDeleteUser = async (user) => {
-    if (!window.confirm(`Are you sure you want to delete user ${user.name} (${user.email})?`)) return;
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${user.name} (${user.email})?`,
+    );
+
+    if (!confirmed) return;
 
     try {
       const res = await api.deleteUser(user.id);
+
       if (res.success) {
-        addToast(res.message, 'info');
+        addToast(res.message || "User deleted successfully", "info");
         fetchOverview();
       }
     } catch (err) {
-      addToast(err.message || 'Failed to delete user', 'error');
+      addToast(err.message || "Failed to delete user", "error");
     }
   };
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-        Loading admin telemetry and governance controls...
+      <div className="admin-loading">
+        <RefreshCw size={20} className="admin-loading-icon" />
+        <span>Loading administration dashboard...</span>
       </div>
     );
   }
 
-  const { metrics, users = [], auditLogs = [] } = overview || {};
-  const filteredUsers = users.filter(u =>
-    u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const { metrics = {}, users = [], auditLogs = [] } = overview || {};
+
+  const filteredUsers = users.filter((u) => {
+    const search = searchTerm.toLowerCase();
+
+    return (
+      u.name?.toLowerCase().includes(search) ||
+      u.email?.toLowerCase().includes(search)
+    );
+  });
+
+  const statCards = [
+    {
+      label: "Total users",
+      value: metrics.totalUsers || 0,
+      description: "Registered accounts",
+      icon: Users,
+      className: "users",
+    },
+    {
+      label: "Monthly revenue",
+      value: metrics.monthlyRecurringRevenue || "$0",
+      description: "Recurring subscriptions",
+      icon: DollarSign,
+      className: "revenue",
+    },
+    {
+      label: "Platform tokens",
+      value: (metrics.totalPlatformTokens || 0).toLocaleString(),
+      description: "Total inference volume",
+      icon: Cpu,
+      className: "tokens",
+    },
+    {
+      label: "AI generations",
+      value: metrics.totalAiGenerations || 0,
+      description: "Total generations",
+      icon: Activity,
+      className: "generations",
+    },
+  ];
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* Header */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <ShieldCheck size={20} color="#fff" />
+    <section className="admin-page">
+      {/* Page header */}
+      <header className="admin-header">
+        <div className="admin-header-main">
+          <div className="admin-heading-icon">
+            <ShieldCheck size={21} />
           </div>
-          <h1 style={{ fontSize: '22px', fontWeight: 800 }}>Platform Governance & Administration</h1>
-        </div>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-          Manage global user authorizations, monitor real-time MRR, inspect system audit trails, and configure platform limits.
-        </p>
-      </div>
 
-      {/* 4 Admin Stat Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px' }}>
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 600 }}>
-            <span>TOTAL USERS</span>
-            <Users size={16} color="var(--accent-purple)" />
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, margin: '8px 0 4px 0' }}>{metrics?.totalUsers || 0}</div>
-          <div style={{ fontSize: '12px', color: 'var(--accent-emerald)' }}>Active accounts</div>
-        </div>
-
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 600 }}>
-            <span>MONTHLY MRR</span>
-            <DollarSign size={16} color="var(--accent-emerald)" />
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, margin: '8px 0 4px 0' }}>{metrics?.monthlyRecurringRevenue || '$0'}</div>
-          <div style={{ fontSize: '12px', color: 'var(--accent-emerald)' }}>Recurring subscriptions</div>
-        </div>
-
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 600 }}>
-            <span>PLATFORM TOKENS</span>
-            <Cpu size={16} color="var(--accent-blue)" />
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, margin: '8px 0 4px 0' }}>
-            {(metrics?.totalPlatformTokens || 0).toLocaleString()}
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Aggregate inference volume</div>
-        </div>
-
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 600 }}>
-            <span>TOTAL GENERATIONS</span>
-            <Activity size={16} color="var(--accent-amber)" />
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, margin: '8px 0 4px 0' }}>{metrics?.totalAiGenerations || 0}</div>
-          <div style={{ fontSize: '12px', color: 'var(--accent-emerald)' }}>Completed successfully</div>
-        </div>
-      </div>
-
-      {/* User Management Table */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
           <div>
-            <h2 style={{ fontSize: '17px', fontWeight: 700 }}>Registered Users & RBAC Controls</h2>
-            <div style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Manage user roles, assign subscription tiers, or remove accounts</div>
+            <div className="admin-eyebrow">
+              <span>Workspace</span>
+              <span className="admin-breadcrumb-separator">/</span>
+              <span>Administration</span>
+            </div>
+
+            <h1>Admin dashboard</h1>
+
+            <p>
+              Manage users, monitor platform usage and oversee account
+              permissions.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="admin-refresh-btn"
+          onClick={fetchOverview}
+        >
+          <RefreshCw size={14} />
+          Refresh
+        </button>
+      </header>
+
+      {/* Statistics */}
+      <section className="admin-stats">
+        {statCards.map((stat) => {
+          const Icon = stat.icon;
+
+          return (
+            <article className="admin-stat-card" key={stat.label}>
+              <div className="admin-stat-top">
+                <span>{stat.label}</span>
+
+                <div className={`admin-stat-icon ${stat.className}`}>
+                  <Icon size={17} />
+                </div>
+              </div>
+
+              <div className="admin-stat-value">{stat.value}</div>
+
+              <div className="admin-stat-description">{stat.description}</div>
+            </article>
+          );
+        })}
+      </section>
+
+      {/* User management */}
+      <section className="admin-section">
+        <div className="admin-section-header">
+          <div className="admin-section-title">
+            <div className="admin-section-icon">
+              <UserCog size={17} />
+            </div>
+
+            <div>
+              <h2>User management</h2>
+              <p>Manage roles, subscription plans and registered accounts.</p>
+            </div>
           </div>
 
-          {/* Search */}
-          <div style={{ position: 'relative', width: '260px' }}>
-            <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '10px', top: '10px' }} />
+          <div className="admin-user-count">
+            <Users size={14} />
+            {users.length} users
+          </div>
+        </div>
+
+        <div className="admin-table-toolbar">
+          <div className="admin-search">
+            <Search size={15} />
+
             <input
               type="text"
-              className="glass-input"
-              style={{ width: '100%', paddingLeft: '32px', fontSize: '12.5px', padding: '6px 12px 6px 32px' }}
-              placeholder="Search user or email..."
+              placeholder="Search by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Search users"
             />
+
+            {searchTerm && (
+              <button
+                type="button"
+                className="admin-search-clear"
+                onClick={() => setSearchTerm("")}
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            )}
           </div>
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px', textAlign: 'left' }}>
+        <div className="admin-table-wrapper">
+          <table className="admin-table">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-glass)', color: 'var(--text-muted)', fontSize: '12px' }}>
-                <th style={{ padding: '10px 12px' }}>User</th>
-                <th style={{ padding: '10px 12px' }}>Role</th>
-                <th style={{ padding: '10px 12px' }}>Tier Plan</th>
-                <th style={{ padding: '10px 12px' }}>Tokens Used</th>
-                <th style={{ padding: '10px 12px' }}>Created</th>
-                <th style={{ padding: '10px 12px', textAlign: 'right' }}>Actions</th>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Plan</th>
+                <th>Tokens used</th>
+                <th>Joined</th>
+                <th className="admin-actions-heading">Actions</th>
               </tr>
             </thead>
+
             <tbody>
-              {filteredUsers.map(u => (
-                <tr key={u.id} style={{ borderBottom: '1px solid var(--border-glass)' }}>
-                  <td style={{ padding: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <img
-                        src={u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`}
-                        alt={u.name}
-                        style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
-                      />
-                      <div>
-                        <div style={{ fontWeight: 600 }}>{u.name}</div>
-                        <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{u.email}</div>
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((u) => (
+                  <tr key={u.id}>
+                    <td>
+                      <div className="admin-user-cell">
+                        <img
+                          src={
+                            u.avatar ||
+                            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+                              u.name || u.email || "user",
+                            )}`
+                          }
+                          alt=""
+                          className="admin-user-avatar"
+                        />
+
+                        <div className="admin-user-info">
+                          <span className="admin-user-name">{u.name}</span>
+
+                          <span className="admin-user-email">{u.email}</span>
+                        </div>
                       </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  <td style={{ padding: '12px' }}>
-                    <span style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '3px 8px',
-                      borderRadius: '12px',
-                      background: u.role === 'admin' ? 'rgba(168, 85, 247, 0.2)' : 'rgba(56, 189, 248, 0.15)',
-                      color: u.role === 'admin' ? '#c084fc' : '#38bdf8',
-                      border: '1px solid var(--border-glass)'
-                    }}>
-                      {u.role.toUpperCase()}
-                    </span>
-                  </td>
-
-                  <td style={{ padding: '12px' }}>
-                    <select
-                      value={u.plan || 'free'}
-                      onChange={(e) => handlePlanChange(u.id, e.target.value)}
-                      className="glass-input"
-                      style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}
-                    >
-                      <option value="free" style={{ background: 'var(--bg-secondary)' }}>Free</option>
-                      <option value="pro" style={{ background: 'var(--bg-secondary)' }}>Pro</option>
-                      <option value="enterprise" style={{ background: 'var(--bg-secondary)' }}>Enterprise</option>
-                    </select>
-                  </td>
-
-                  <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>
-                    {(u.tokensUsed || 0).toLocaleString()}
-                  </td>
-
-                  <td style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '12px' }}>
-                    {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Recent'}
-                  </td>
-
-                  <td style={{ padding: '12px', textAlign: 'right' }}>
-                    <div style={{ display: 'inline-flex', gap: '8px' }}>
-                      <button
-                        onClick={() => handleRoleToggle(u)}
-                        title={u.role === 'admin' ? 'Demote to regular user' : 'Promote to admin'}
-                        style={{
-                          background: 'var(--bg-glass)',
-                          border: '1px solid var(--border-glass)',
-                          color: 'var(--text-secondary)',
-                          padding: '5px 10px',
-                          borderRadius: '6px',
-                          fontSize: '11.5px',
-                          cursor: 'pointer'
-                        }}
+                    <td>
+                      <span
+                        className={`admin-role-badge ${
+                          u.role === "admin" ? "is-admin" : "is-user"
+                        }`}
                       >
-                        {u.role === 'admin' ? 'Demote' : 'Make Admin'}
-                      </button>
+                        {u.role === "admin" ? (
+                          <Shield size={12} />
+                        ) : (
+                          <Users size={12} />
+                        )}
 
-                      <button
-                        onClick={() => handleDeleteUser(u)}
-                        title="Delete User"
-                        style={{
-                          background: 'rgba(244, 63, 94, 0.1)',
-                          border: '1px solid rgba(244, 63, 94, 0.3)',
-                          color: '#f43f5e',
-                          padding: '5px 8px',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center'
-                        }}
+                        {u.role || "user"}
+                      </span>
+                    </td>
+
+                    <td>
+                      <select
+                        value={u.plan || "free"}
+                        onChange={(e) => handlePlanChange(u.id, e.target.value)}
+                        className="admin-plan-select"
+                        aria-label={`Change plan for ${u.name}`}
                       >
-                        <Trash2 size={13} />
-                      </button>
+                        <option value="free">Free</option>
+                        <option value="pro">Pro</option>
+                        <option value="enterprise">Enterprise</option>
+                      </select>
+                    </td>
+
+                    <td>
+                      <span className="admin-token-value">
+                        <Database size={13} />
+                        {(u.tokensUsed || 0).toLocaleString()}
+                      </span>
+                    </td>
+
+                    <td>
+                      <span className="admin-date">
+                        <CalendarDays size={13} />
+                        {u.createdAt
+                          ? new Date(u.createdAt).toLocaleDateString()
+                          : "Recent"}
+                      </span>
+                    </td>
+
+                    <td>
+                      <div className="admin-row-actions">
+                        <button
+                          type="button"
+                          className="admin-role-action"
+                          onClick={() => handleRoleToggle(u)}
+                          title={
+                            u.role === "admin"
+                              ? "Demote to user"
+                              : "Promote to admin"
+                          }
+                        >
+                          {u.role === "admin" ? "Demote" : "Make admin"}
+                        </button>
+
+                        <button
+                          type="button"
+                          className="admin-delete-btn"
+                          onClick={() => handleDeleteUser(u)}
+                          title="Delete user"
+                          aria-label={`Delete ${u.name}`}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6">
+                    <div className="admin-empty-users">
+                      <Search size={22} />
+                      <strong>No users found</strong>
+                      <span>Try searching with a different name or email.</span>
                     </div>
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
-      </div>
 
-      {/* Audit Logs */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <h2 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '16px' }}>System Security & Audit Log</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {auditLogs.map(log => (
-            <div
-              key={log.id}
-              style={{
-                background: 'var(--bg-glass)',
-                border: '1px solid var(--border-glass)',
-                borderRadius: '8px',
-                padding: '12px 16px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: '8px',
-                fontSize: '13px'
-              }}
-            >
-              <div>
-                <span style={{ fontWeight: 700, color: 'var(--accent-purple)', marginRight: '8px' }}>[{log.action}]</span>
-                <span style={{ color: 'var(--text-secondary)' }}>{log.details}</span>
-              </div>
-              <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-                {log.actor} • {new Date(log.timestamp).toLocaleString()}
-              </div>
-            </div>
-          ))}
+        <div className="admin-table-footer">
+          Showing {filteredUsers.length} of {users.length} users
         </div>
-      </div>
-    </div>
+      </section>
+
+      {/* Audit logs */}
+      <section className="admin-section admin-audit-section">
+        <div className="admin-section-header">
+          <div className="admin-section-title">
+            <div className="admin-section-icon audit-icon">
+              <Activity size={17} />
+            </div>
+
+            <div>
+              <h2>Security & audit activity</h2>
+              <p>Recent administrative actions and platform activity.</p>
+            </div>
+          </div>
+
+          <span className="admin-live-indicator">
+            <span />
+            Activity log
+          </span>
+        </div>
+
+        <div className="admin-audit-list">
+          {auditLogs.length > 0 ? (
+            auditLogs.map((log) => (
+              <article className="admin-audit-item" key={log.id}>
+                <div className="admin-audit-marker">
+                  <Activity size={14} />
+                </div>
+
+                <div className="admin-audit-content">
+                  <div className="admin-audit-description">
+                    <span className="admin-audit-action">{log.action}</span>
+
+                    <span>{log.details}</span>
+                  </div>
+
+                  <div className="admin-audit-meta">
+                    <span>{log.actor}</span>
+                    <span className="admin-audit-dot">·</span>
+                    <span>
+                      {log.timestamp
+                        ? new Date(log.timestamp).toLocaleString()
+                        : "Unknown time"}
+                    </span>
+                  </div>
+                </div>
+              </article>
+            ))
+          ) : (
+            <div className="admin-empty-audit">
+              <Activity size={22} />
+              <strong>No audit activity yet</strong>
+              <span>Administrative activity will appear here.</span>
+            </div>
+          )}
+        </div>
+      </section>
+    </section>
   );
 }
