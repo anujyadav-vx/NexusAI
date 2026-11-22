@@ -1,233 +1,308 @@
-import React, { useState } from 'react';
-import { api } from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
+import React, { useState } from "react";
+import { api } from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
 import {
   Image as ImageIcon,
   Sparkles,
-  Download
-} from 'lucide-react';
+  Download,
+  WandSparkles,
+  Check,
+  LoaderCircle,
+} from "lucide-react";
+
+const STYLES = [
+  "Photorealistic",
+  "Cyberpunk",
+  "3D Render",
+  "Anime/Digital Art",
+];
+
+const ASPECT_RATIOS = ["16:9", "1:1", "9:16"];
 
 export default function ImageGeneratorPage() {
   const { refreshUserData } = useAuth();
   const { addToast } = useNotification();
-  const [prompt, setPrompt] = useState('Cyberpunk neon skyscraper with holographic interfaces and volumetric fog');
-  const [style, setStyle] = useState('Cyberpunk');
-  const [aspectRatio, setAspectRatio] = useState('16:9');
+
+  const [prompt, setPrompt] = useState(
+    "Cyberpunk neon skyscraper with holographic interfaces and volumetric fog",
+  );
+  const [style, setStyle] = useState("Cyberpunk");
+  const [aspectRatio, setAspectRatio] = useState("16:9");
   const [loading, setLoading] = useState(false);
   const [imageResult, setImageResult] = useState(null);
 
-  const styles = ['Photorealistic', 'Cyberpunk', '3D Render', 'Anime/Digital Art'];
-  const aspectRatios = ['16:9', '1:1', '9:16'];
-
   const handleGenerate = async (e) => {
     e.preventDefault();
-    if (!prompt.trim()) return;
+
+    if (!prompt.trim() || loading) return;
 
     setLoading(true);
+
     try {
-      const res = await api.imageGenerate({ prompt, style, aspectRatio });
+      const res = await api.imageGenerate({
+        prompt: prompt.trim(),
+        style,
+        aspectRatio,
+      });
+
       if (res.success && res.data) {
         setImageResult(res.data);
         refreshUserData();
-        addToast('Visual artwork rendered successfully!', 'success');
+        addToast("Image generated successfully!", "success");
       } else {
-        throw new Error(res.message || 'Image generation failed');
+        throw new Error(res.message || "Image generation failed");
       }
     } catch (err) {
-      addToast(err.message || 'Failed to render image.', 'error');
+      addToast(err.message || "Failed to generate image.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <ImageIcon size={20} color="#fff" />
-          </div>
-          <h1 style={{ fontSize: '22px', fontWeight: 800 }}>AI Creative Image Studio</h1>
-        </div>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-          Synthesize high-fidelity photorealistic and digital art assets from descriptive prompts with seed reproducibility and custom styles.
-        </p>
-      </div>
+  const imageUrl = imageResult?.imageUrl;
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(400px, 1.5fr)', gap: '24px', alignItems: 'start' }}>
-        {/* Form */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <form onSubmit={handleGenerate} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+  return (
+    <div className="studio-page">
+      {/* Page Header */}
+      <header className="studio-header">
+        <div className="studio-heading">
+          <div className="studio-heading-icon">
+            <ImageIcon size={19} />
+          </div>
+
+          <div>
+            <div className="studio-eyebrow">CREATIVE TOOLS</div>
+            <h1>Image Studio</h1>
+          </div>
+        </div>
+
+        <p className="studio-description">
+          Turn your ideas into visuals. Describe what you imagine, customize the
+          style, and generate your artwork.
+        </p>
+      </header>
+
+      {/* Main Workspace */}
+      <div className="studio-workspace">
+        {/* Generator Form */}
+        <section className="studio-panel studio-controls">
+          <div className="studio-panel-heading">
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Image Prompt</label>
+              <h2>Create an image</h2>
+              <p>Configure your image generation settings.</p>
+            </div>
+
+            <WandSparkles size={19} className="studio-muted-icon" />
+          </div>
+
+          <form onSubmit={handleGenerate} className="studio-form">
+            {/* Prompt */}
+            <div className="studio-field">
+              <div className="studio-label-row">
+                <label htmlFor="studio-prompt">Image prompt</label>
+                <span className="studio-optional-label">
+                  DESCRIBE YOUR IDEA
+                </span>
+              </div>
+
               <textarea
-                className="glass-input"
-                rows={4}
-                style={{ width: '100%', resize: 'none', fontSize: '13.5px' }}
-                placeholder="Describe your scene in detail..."
+                id="studio-prompt"
+                className="studio-prompt-input"
+                rows={6}
+                placeholder="Describe the image you want to create..."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
+                maxLength={2000}
                 required
               />
+
+              <div className="studio-input-footer">
+                <span>Be descriptive for better results</span>
+                <span>{prompt.length}/2000</span>
+              </div>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, marginBottom: '8px' }}>Aesthetic Style</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                {styles.map(s => (
+            {/* Style */}
+            <div className="studio-field">
+              <div className="studio-label-row">
+                <label>Aesthetic style</label>
+                <span className="studio-optional-label">STYLE</span>
+              </div>
+
+              <div className="studio-style-grid">
+                {STYLES.map((item) => {
+                  const selected = style === item;
+
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      className={`studio-option ${selected ? "selected" : ""}`}
+                      onClick={() => setStyle(item)}
+                      aria-pressed={selected}
+                    >
+                      <span>{item}</span>
+                      {selected && <Check size={15} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Aspect Ratio */}
+            <div className="studio-field">
+              <div className="studio-label-row">
+                <label>Aspect ratio</label>
+                <span className="studio-optional-label">CANVAS SIZE</span>
+              </div>
+
+              <div className="studio-ratio-grid">
+                {ASPECT_RATIOS.map((ratio) => (
                   <button
-                    key={s}
+                    key={ratio}
                     type="button"
-                    onClick={() => setStyle(s)}
-                    style={{
-                      padding: '10px',
-                      borderRadius: '8px',
-                      fontSize: '12.5px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      border: style === s ? '1px solid var(--accent-purple)' : '1px solid var(--border-glass)',
-                      background: style === s ? 'rgba(139, 92, 246, 0.25)' : 'var(--bg-glass)',
-                      color: style === s ? '#fff' : 'var(--text-secondary)',
-                      transition: 'all 0.2s ease'
-                    }}
+                    className={`studio-ratio-option ${
+                      aspectRatio === ratio ? "selected" : ""
+                    }`}
+                    onClick={() => setAspectRatio(ratio)}
+                    aria-pressed={aspectRatio === ratio}
                   >
-                    {s}
+                    <span
+                      className={`ratio-preview ratio-${ratio.replace(":", "-")}`}
+                    />
+                    <span>{ratio}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, marginBottom: '8px' }}>Aspect Ratio</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                {aspectRatios.map(ar => (
-                  <button
-                    key={ar}
-                    type="button"
-                    onClick={() => setAspectRatio(ar)}
-                    style={{
-                      padding: '8px',
-                      borderRadius: '8px',
-                      fontSize: '12.5px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      border: aspectRatio === ar ? '1px solid var(--accent-indigo)' : '1px solid var(--border-glass)',
-                      background: aspectRatio === ar ? 'rgba(99, 102, 241, 0.25)' : 'var(--bg-glass)',
-                      color: aspectRatio === ar ? '#fff' : 'var(--text-secondary)'
-                    }}
-                  >
-                    {ar}
-                  </button>
-                ))}
-              </div>
-            </div>
-
+            {/* Generate */}
             <button
               type="submit"
-              disabled={loading}
-              className="gradient-btn-primary"
-              style={{
-                padding: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                fontSize: '14px',
-                marginTop: '6px'
-              }}
+              className="studio-generate-btn"
+              disabled={loading || !prompt.trim()}
             >
-              {loading ? <Sparkles size={16} className="animate-spin" /> : <ImageIcon size={16} />}
-              {loading ? 'Synthesizing Neural Canvas...' : 'Generate AI Visual'}
+              {loading ? (
+                <>
+                  <LoaderCircle size={17} className="studio-spin" />
+                  Generating image...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={17} />
+                  Generate image
+                </>
+              )}
             </button>
+
+            <p className="studio-form-note">
+              <Sparkles size={13} />
+              Your image will appear in the preview panel.
+            </p>
           </form>
-        </div>
+        </section>
 
-        {/* Display */}
-        <div>
-          {imageResult ? (
-            <div className="glass-panel animate-fade-in" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-glass)', background: '#000' }}>
-                <img
-                  src={imageResult.imageUrl}
-                  alt={imageResult.prompt}
-                  style={{
-                    width: '100%',
-                    maxHeight: '440px',
-                    objectFit: 'cover',
-                    display: 'block'
-                  }}
-                />
-                <div style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
-                  padding: '20px 16px 14px 16px',
-                  color: '#fff',
-                  fontSize: '13px'
-                }}>
-                  "{imageResult.prompt}"
-                </div>
-              </div>
+        {/* Preview Panel */}
+        <section className="studio-panel studio-preview-panel">
+          <div className="studio-preview-header">
+            <div>
+              <h2>Preview</h2>
+              <p>Your generated artwork will appear here.</p>
+            </div>
 
-              {/* Specs & Actions */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                  <span>Ratio: {imageResult.aspectRatio}</span>
-                  <span>Style: {imageResult.style}</span>
-                  <span>Seed: #{imageResult.seed}</span>
-                </div>
+            <span className={`studio-status ${imageUrl ? "complete" : ""}`}>
+              <span className="studio-status-dot" />
+              {imageUrl ? "Generated" : "Waiting"}
+            </span>
+          </div>
 
-                <a
-                  href={imageResult.imageUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  download={`nexus_ai_${imageResult.seed}.jpg`}
-                  className="gradient-btn-primary"
-                  style={{
-                    padding: '8px 16px',
-                    textDecoration: 'none',
-                    fontSize: '12.5px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
+          <div className="studio-preview-content">
+            {imageUrl ? (
+              <div className="studio-result">
+                <div
+                  className={`studio-image-frame ratio-${(
+                    imageResult.aspectRatio || aspectRatio
+                  ).replace(":", "-")}`}
                 >
-                  <Download size={14} /> Download Full Asset
-                </a>
+                  <img
+                    src={imageUrl}
+                    alt={imageResult.prompt || "Generated artwork"}
+                    className="studio-result-image"
+                  />
+
+                  {loading && (
+                    <div className="studio-regenerating">
+                      <LoaderCircle size={20} className="studio-spin" />
+                      Generating a new image...
+                    </div>
+                  )}
+                </div>
+
+                <div className="studio-result-details">
+                  <div className="studio-result-prompt">
+                    <span className="studio-detail-label">PROMPT</span>
+                    <p>{imageResult.prompt}</p>
+                  </div>
+
+                  <div className="studio-result-meta">
+                    <div className="studio-meta-item">
+                      <span>Ratio</span>
+                      <strong>{imageResult.aspectRatio || "—"}</strong>
+                    </div>
+
+                    <div className="studio-meta-item">
+                      <span>Style</span>
+                      <strong>{imageResult.style || "—"}</strong>
+                    </div>
+
+                    <div className="studio-meta-item">
+                      <span>Seed</span>
+                      <strong>{imageResult.seed ?? "—"}</strong>
+                    </div>
+                  </div>
+
+                  <a
+                    href={imageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download={`nexus_ai_${imageResult.seed ?? "image"}.jpg`}
+                    className="studio-download-btn"
+                  >
+                    <Download size={16} />
+                    Download image
+                  </a>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="glass-panel" style={{
-              padding: '60px 24px',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-muted)'
-            }}>
-              <ImageIcon size={48} color="var(--border-glass-glow)" style={{ marginBottom: '16px' }} />
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-                Neural Studio Ready
-              </h3>
-              <p style={{ fontSize: '13px', maxWidth: '360px' }}>
-                Type your visual prompt on the left, pick an aesthetic style and aspect ratio, then hit Generate.
-              </p>
-            </div>
-          )}
-        </div>
+            ) : (
+              <div className="studio-empty-state">
+                <div className="studio-empty-icon">
+                  {loading ? (
+                    <LoaderCircle size={30} className="studio-spin" />
+                  ) : (
+                    <ImageIcon size={30} />
+                  )}
+                </div>
+
+                <h3>
+                  {loading ? "Creating your artwork" : "Your canvas is empty"}
+                </h3>
+
+                <p>
+                  {loading
+                    ? "Please wait while your image is being generated."
+                    : "Enter a prompt, select your preferred style, and generate your first image."}
+                </p>
+
+                {loading && (
+                  <div className="studio-loading-track">
+                    <div className="studio-loading-bar" />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );
