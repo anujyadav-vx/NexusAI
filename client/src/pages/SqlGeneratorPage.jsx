@@ -1,229 +1,317 @@
-import React, { useState } from 'react';
-import { api } from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
+import React, { useState } from "react";
+import { api } from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
 import {
   Database,
   Sparkles,
   Copy,
   Check,
   Terminal,
-  Zap
-} from 'lucide-react';
+  Zap,
+  Code2,
+  Braces,
+  ChevronDown,
+  AlertCircle,
+} from "lucide-react";
+
+const dialects = ["PostgreSQL", "MySQL", "SQLite", "Snowflake"];
 
 export default function SqlGeneratorPage() {
   const { refreshUserData } = useAuth();
   const { addToast } = useNotification();
-  const [prompt, setPrompt] = useState('Find the top 5 highest spending users who made orders in 2026');
-  const [dialect, setDialect] = useState('PostgreSQL');
-  const [schema, setSchema] = useState('users(id, name, email), orders(id, user_id, total_amount, status, created_at)');
+
+  const [prompt, setPrompt] = useState(
+    "Find the top 5 highest spending users who made orders in 2026",
+  );
+  const [dialect, setDialect] = useState("PostgreSQL");
+  const [schema, setSchema] = useState(
+    "users(id, name, email), orders(id, user_id, total_amount, status, created_at)",
+  );
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [copied, setCopied] = useState(false);
 
   const handleGenerate = async (e) => {
     e.preventDefault();
-    if (!prompt.trim()) return;
+
+    if (!prompt.trim()) {
+      addToast("Please enter a question first.", "error");
+      return;
+    }
 
     setLoading(true);
+
     try {
-      const res = await api.sqlGenerate({ prompt, dialect, schema });
+      const res = await api.sqlGenerate({
+        prompt: prompt.trim(),
+        dialect,
+        schema: schema.trim(),
+      });
+
       if (res.success && res.data) {
         setResult(res.data);
         refreshUserData();
-        addToast('SQL query generated!', 'success');
+        addToast("SQL query generated successfully!", "success");
       } else {
-        throw new Error(res.message || 'Generation failed');
+        throw new Error(res.message || "Generation failed");
       }
     } catch (err) {
-      addToast(err.message || 'Failed to generate SQL query.', 'error');
+      addToast(err.message || "Failed to generate SQL query.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const copySql = () => {
+  const copySql = async () => {
     if (!result?.sql) return;
-    navigator.clipboard.writeText(result.sql);
-    setCopied(true);
-    addToast('SQL copied to clipboard!', 'info', 2000);
-    setTimeout(() => setCopied(false), 2000);
+
+    try {
+      await navigator.clipboard.writeText(result.sql);
+      setCopied(true);
+      addToast("SQL copied to clipboard!", "success");
+
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      addToast("Unable to copy SQL. Please copy it manually.", "error");
+    }
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="sql-page">
       {/* Header */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <Database size={20} color="#fff" />
+      <header className="sql-header">
+        <div className="sql-heading">
+          <div className="sql-heading-icon">
+            <Database size={21} />
           </div>
-          <h1 style={{ fontSize: '22px', fontWeight: 800 }}>AI Natural Language SQL Generator</h1>
-        </div>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-          Convert natural language questions into performant, production-ready SQL queries with automated join inference and indexing tips.
-        </p>
-      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(400px, 1.4fr)', gap: '24px', alignItems: 'start' }}>
-        {/* Form */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <form onSubmit={handleGenerate} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label style={{ fontSize: '13px', fontWeight: 600 }}>SQL Dialect</label>
-              <select
-                className="glass-input"
-                value={dialect}
-                onChange={(e) => setDialect(e.target.value)}
-                style={{ padding: '6px 12px', fontSize: '12.5px', cursor: 'pointer' }}
-              >
-                <option value="PostgreSQL" style={{ background: 'var(--bg-secondary)' }}>PostgreSQL</option>
-                <option value="MySQL" style={{ background: 'var(--bg-secondary)' }}>MySQL</option>
-                <option value="SQLite" style={{ background: 'var(--bg-secondary)' }}>SQLite</option>
-                <option value="Snowflake" style={{ background: 'var(--bg-secondary)' }}>Snowflake</option>
-              </select>
+          <div>
+            <div className="sql-eyebrow">
+              <span className="sql-eyebrow-dot" />
+              DATABASE TOOL
+            </div>
+            <h1>SQL Generator</h1>
+            <p>
+              Turn plain English into SQL queries with AI-powered query
+              generation and performance suggestions.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      {/* Main workspace */}
+      <div className="sql-workspace">
+        {/* Left: Input panel */}
+        <section className="sql-panel sql-input-panel">
+          <div className="sql-panel-header">
+            <div>
+              <span className="sql-section-label">QUERY BUILDER</span>
+              <h2>Describe your query</h2>
+            </div>
+            <div className="sql-panel-icon">
+              <Braces size={17} />
+            </div>
+          </div>
+
+          <form onSubmit={handleGenerate} className="sql-form">
+            {/* Dialect */}
+            <div className="sql-field">
+              <label htmlFor="sql-dialect">Database dialect</label>
+
+              <div className="sql-select-wrap">
+                <Database size={15} />
+                <select
+                  id="sql-dialect"
+                  value={dialect}
+                  onChange={(e) => setDialect(e.target.value)}
+                >
+                  {dialects.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={15} className="sql-select-arrow" />
+              </div>
+              <span className="sql-field-hint">
+                Choose the database engine for your query.
+              </span>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
-                Natural Language Question / Intent
-              </label>
+            {/* Prompt */}
+            <div className="sql-field">
+              <div className="sql-label-row">
+                <label htmlFor="sql-prompt">What do you want to find?</label>
+                <span className="sql-required">Required</span>
+              </div>
+
               <textarea
-                className="glass-input"
-                rows={4}
-                style={{ width: '100%', resize: 'none', fontSize: '13.5px' }}
-                placeholder="e.g. Calculate month-over-month revenue growth grouped by country"
+                id="sql-prompt"
+                className="sql-textarea sql-prompt-input"
+                rows={5}
+                placeholder="Example: Calculate monthly revenue grouped by country..."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 required
               />
+
+              <span className="sql-field-hint">
+                Describe the result you want in everyday language.
+              </span>
             </div>
 
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600 }}>Table Schema / Context (Optional)</label>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Helps accurate column mapping</span>
+            {/* Schema */}
+            <div className="sql-field">
+              <div className="sql-label-row">
+                <label htmlFor="sql-schema">Database schema</label>
+                <span className="sql-optional">Optional</span>
               </div>
+
               <textarea
-                className="glass-input"
-                rows={3}
-                style={{ width: '100%', resize: 'none', fontSize: '12px', fontFamily: 'var(--font-mono)' }}
-                placeholder="e.g. users(id, email), orders(id, user_id, amount, status)"
+                id="sql-schema"
+                className="sql-textarea sql-schema-input"
+                rows={5}
+                placeholder="users(id, name, email), orders(id, user_id, amount)"
                 value={schema}
                 onChange={(e) => setSchema(e.target.value)}
               />
+
+              <span className="sql-field-hint">
+                Add table and column names to help the AI map your query.
+              </span>
             </div>
 
             <button
               type="submit"
-              disabled={loading}
-              className="gradient-btn-primary"
-              style={{
-                padding: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                fontSize: '14px',
-                marginTop: '6px'
-              }}
+              className="sql-generate-btn"
+              disabled={loading || !prompt.trim()}
             >
-              {loading ? <Sparkles size={16} className="animate-spin" /> : <Terminal size={16} />}
-              {loading ? 'Synthesizing Query...' : `Generate ${dialect} Query`}
+              {loading ? (
+                <>
+                  <span className="sql-spinner" />
+                  Generating query...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={17} />
+                  Generate SQL query
+                </>
+              )}
             </button>
           </form>
-        </div>
 
-        {/* Results */}
-        <div>
+          <div className="sql-security-note">
+            <AlertCircle size={15} />
+            <span>
+              Review generated SQL before running it against your database.
+            </span>
+          </div>
+        </section>
+
+        {/* Right: Results */}
+        <section className="sql-results-column">
           {result ? (
-            <div className="glass-panel animate-fade-in" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#ec4899', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Target: {result.dialect}
-                </span>
+            <div className="sql-panel sql-result-panel">
+              <div className="sql-result-header">
+                <div>
+                  <span className="sql-section-label">GENERATED OUTPUT</span>
+                  <h2>Query result</h2>
+                </div>
 
-                <button
-                  onClick={copySql}
-                  style={{
-                    background: 'var(--bg-glass)',
-                    border: '1px solid var(--border-glass)',
-                    color: 'var(--text-primary)',
-                    padding: '6px 12px',
-                    borderRadius: '8px',
-                    fontSize: '12.5px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
-                  {copied ? 'Copied' : 'Copy SQL'}
-                </button>
+                <span className="sql-dialect-badge">
+                  <Database size={13} />
+                  {result.dialect || dialect}
+                </span>
               </div>
 
-              {/* SQL Code Box */}
-              <pre style={{
-                background: 'rgba(0, 0, 0, 0.45)',
-                border: '1px solid var(--border-glass)',
-                padding: '16px',
-                borderRadius: '10px',
-                overflowX: 'auto',
-                color: '#38bdf8',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '13px',
-                lineHeight: 1.5
-              }}>
-                <code>{result.sql}</code>
-              </pre>
+              {/* SQL code */}
+              <div className="sql-code-container">
+                <div className="sql-code-toolbar">
+                  <div className="sql-code-file">
+                    <Code2 size={15} />
+                    <span>generated-query.sql</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className={`sql-copy-btn ${copied ? "is-copied" : ""}`}
+                    onClick={copySql}
+                    disabled={!result.sql}
+                  >
+                    {copied ? <Check size={14} /> : <Copy size={14} />}
+                    {copied ? "Copied" : "Copy SQL"}
+                  </button>
+                </div>
+
+                <pre className="sql-code">
+                  <code>{result.sql || "-- No SQL query returned."}</code>
+                </pre>
+              </div>
 
               {/* Explanation */}
-              <div>
-                <h3 style={{ fontSize: '13.5px', fontWeight: 700, marginBottom: '6px' }}>Query Logic Breakdown</h3>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
-                  {result.explanation}
-                </div>
-              </div>
+              {result.explanation && (
+                <div className="sql-detail-section">
+                  <div className="sql-detail-title">
+                    <div className="sql-detail-icon">
+                      <Terminal size={16} />
+                    </div>
+                    <h3>Query explanation</h3>
+                  </div>
 
-              {/* Performance Tip */}
-              <div style={{ background: 'rgba(236, 72, 153, 0.1)', border: '1px solid rgba(236, 72, 153, 0.25)', padding: '12px 16px', borderRadius: '10px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#f472b6', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                  <Zap size={14} /> Performance & Index Advice
+                  <p className="sql-explanation">{result.explanation}</p>
                 </div>
-                <div style={{ fontSize: '12.5px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
-                  {result.performanceTip}
+              )}
+
+              {/* Performance tips */}
+              {result.performanceTip && (
+                <div className="sql-performance-card">
+                  <div className="sql-performance-heading">
+                    <Zap size={16} />
+                    <h3>Performance suggestions</h3>
+                  </div>
+
+                  <p>{result.performanceTip}</p>
                 </div>
+              )}
+
+              <div className="sql-result-footer">
+                <AlertCircle size={14} />
+                <span>
+                  AI-generated SQL may need adjustments for your database
+                  structure. Validate before execution.
+                </span>
               </div>
             </div>
           ) : (
-            <div className="glass-panel" style={{
-              padding: '60px 24px',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-muted)'
-            }}>
-              <Database size={48} color="var(--border-glass-glow)" style={{ marginBottom: '16px' }} />
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-                No SQL Generated Yet
-              </h3>
-              <p style={{ fontSize: '13px', maxWidth: '360px' }}>
-                Type your question in plain English on the left, pick your database engine, and generate optimized queries instantly.
+            <div className="sql-panel sql-empty-state">
+              <div className="sql-empty-icon">
+                <Database size={29} />
+              </div>
+
+              <h2>Your SQL query will appear here</h2>
+              <p>
+                Describe what you need, select a database dialect, and generate
+                your query. Your SQL and explanation will show up in this
+                workspace.
               </p>
+
+              <div className="sql-empty-example">
+                <span>EXAMPLE REQUEST</span>
+                <p>
+                  "Find the top 5 highest spending users who made orders in
+                  2026"
+                </p>
+              </div>
+
+              <div className="sql-empty-footer">
+                <Sparkles size={14} />
+                AI-powered SQL generation
+              </div>
             </div>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );
