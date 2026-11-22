@@ -1,247 +1,382 @@
-import React, { useState, useEffect } from 'react';
-import confetti from 'canvas-confetti';
-import { api } from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
+import React, { useEffect, useState } from "react";
+import confetti from "canvas-confetti";
+import { api } from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
 import {
   CreditCard,
   Check,
-  Download
-} from 'lucide-react';
+  Download,
+  Zap,
+  Receipt,
+  Sparkles,
+  LoaderCircle,
+} from "lucide-react";
+
+const formatNumber = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toLocaleString() : "0";
+};
 
 export default function BillingPage() {
   const { user, refreshUserData } = useAuth();
   const { addToast } = useNotification();
+
   const [plans, setPlans] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [loadingPlan, setLoadingPlan] = useState(null);
+  const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
+    let active = true;
+
     const fetchData = async () => {
       try {
         const [plansRes, invoicesRes] = await Promise.all([
           api.getPlans(),
-          api.getInvoices()
+          api.getInvoices(),
         ]);
-        if (plansRes.success) setPlans(plansRes.plans);
-        if (invoicesRes.success) setInvoices(invoicesRes.invoices);
+
+        if (!active) return;
+
+        if (plansRes.success) {
+          setPlans(Array.isArray(plansRes.plans) ? plansRes.plans : []);
+        }
+
+        if (invoicesRes.success) {
+          setInvoices(
+            Array.isArray(invoicesRes.invoices) ? invoicesRes.invoices : [],
+          );
+        }
       } catch (err) {
-        console.error('Failed to load billing data', err);
+        if (active) {
+          console.error("Failed to load billing data", err);
+          addToast("Failed to load billing information.", "error");
+        }
+      } finally {
+        if (active) setLoadingData(false);
       }
     };
+
     fetchData();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleUpgrade = async (planId) => {
-    if (user?.plan === planId) return;
+    if (user?.plan === planId || loadingPlan) return;
 
     setLoadingPlan(planId);
+
     try {
       const res = await api.upgradePlan(planId);
+
       if (res.success) {
-        // Trigger celebratory confetti
         confetti({
           particleCount: 120,
           spread: 70,
-          origin: { y: 0.6 }
+          origin: { y: 0.6 },
         });
 
         await refreshUserData();
-        addToast(res.message, 'success');
+        addToast(res.message || "Plan updated successfully.", "success");
       } else {
-        throw new Error(res.message || 'Upgrade failed');
+        throw new Error(res.message || "Upgrade failed");
       }
     } catch (err) {
-      addToast(err.message || 'Failed to update plan.', 'error');
+      addToast(err.message || "Failed to update plan.", "error");
     } finally {
       setLoadingPlan(null);
     }
   };
 
-  const tokensUsed = user?.tokensUsed || 0;
-  const tokenLimit = user?.tokenLimit || 5000;
-  const percentUsed = Math.min(100, Math.round((tokensUsed / tokenLimit) * 100));
+  const tokensUsed = Math.max(0, Number(user?.tokensUsed) || 0);
+  const tokenLimit = Math.max(0, Number(user?.tokenLimit) || 5000);
+
+  const percentUsed =
+    tokenLimit > 0
+      ? Math.min(100, Math.round((tokensUsed / tokenLimit) * 100))
+      : 0;
+
+  const currentPlan = plans.find((plan) => plan.id === user?.plan);
+
+  const handleReceipt = (invoice) => {
+    addToast(
+      `Receipt download is not connected yet for ${invoice.id}.`,
+      "info",
+    );
+  };
+
+  if (loadingData) {
+    return (
+      <div className="billing-state">
+        <LoaderCircle size={22} className="billing-spinner" />
+        <span>Loading billing information...</span>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <main className="billing-page">
       {/* Header */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <CreditCard size={20} color="#fff" />
+      <header className="billing-header">
+        <div className="billing-heading">
+          <div className="billing-heading-icon">
+            <CreditCard size={19} />
           </div>
-          <h1 style={{ fontSize: '22px', fontWeight: 800 }}>Plans, Quotas & Invoicing</h1>
+
+          <div>
+            <div className="billing-eyebrow">ACCOUNT MANAGEMENT</div>
+            <h1>Plans & Billing</h1>
+          </div>
         </div>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-          Scale token allowances on-demand. All plans feature instant zero-latency provisioning and rollover protection.
+
+        <p className="billing-description">
+          Manage your subscription, monitor token usage, and review your billing
+          history.
         </p>
-      </div>
+      </header>
 
-      {/* Current Quota Status */}
-      <div className="glass-panel" style={{
-        padding: '24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '20px',
-        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(17, 24, 39, 0.6) 100%)',
-        border: '1px solid rgba(16, 185, 129, 0.25)'
-      }}>
-        <div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Current Active Subscription
+      {/* Current Plan */}
+      <section className="billing-current-card">
+        <div className="billing-current-info">
+          <div className="billing-current-label">
+            <span className="billing-status-dot" />
+            CURRENT SUBSCRIPTION
           </div>
-          <div style={{ fontSize: '20px', fontWeight: 800, marginTop: '4px', textTransform: 'capitalize' }}>
-            {user?.plan} Tier Plan
-          </div>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            {tokensUsed.toLocaleString()} of {tokenLimit.toLocaleString()} monthly tokens consumed ({percentUsed}%)
-          </div>
-        </div>
 
-        <div style={{ width: '240px' }}>
-          <div style={{ height: '8px', background: 'var(--bg-tertiary)', borderRadius: '4px', overflow: 'hidden' }}>
-            <div style={{ width: `${percentUsed}%`, height: '100%', background: percentUsed > 85 ? '#f43f5e' : 'linear-gradient(90deg, #10b981, #38bdf8)' }} />
-          </div>
-        </div>
-      </div>
+          <h2>
+            {user?.plan
+              ? `${String(user.plan).toUpperCase()} Plan`
+              : "Free Plan"}
+          </h2>
 
-      {/* Plans Comparison Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-        {plans.map((p) => {
-          const isCurrent = user?.plan === p.id;
-          const isPro = p.id === 'pro';
+          <p>
+            {formatNumber(tokensUsed)} of {formatNumber(tokenLimit)} monthly
+            tokens used
+          </p>
 
-          return (
-            <div
-              key={p.id}
-              className="glass-panel"
-              style={{
-                padding: '32px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                position: 'relative',
-                border: isCurrent
-                  ? '2px solid var(--accent-purple)'
-                  : isPro
-                  ? '1px solid rgba(139, 92, 246, 0.4)'
-                  : '1px solid var(--border-glass)',
-                background: isPro
-                  ? 'linear-gradient(180deg, rgba(139, 92, 246, 0.1) 0%, rgba(17, 24, 39, 0.8) 100%)'
-                  : 'var(--bg-card)'
-              }}
-            >
-              {isCurrent && (
-                <div style={{
-                  position: 'absolute',
-                  top: '-12px',
-                  right: '24px',
-                  background: 'var(--accent-purple)',
-                  color: '#fff',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  padding: '3px 10px',
-                  borderRadius: '12px'
-                }}>
-                  CURRENT ACTIVE PLAN
-                </div>
-              )}
-
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: isPro ? '#c084fc' : 'var(--text-muted)' }}>
-                  {p.name.toUpperCase()}
-                </div>
-                <div style={{ fontSize: '36px', fontWeight: 800, margin: '12px 0 6px 0' }}>
-                  ${p.price} <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-muted)' }}>/{p.interval}</span>
-                </div>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '24px' }}>
-                  Includes {p.tokenLimit.toLocaleString()} monthly tokens
-                </div>
-
-                <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '20px', marginBottom: '28px' }}>
-                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13.5px' }}>
-                    {p.features.map((feat, idx) => (
-                      <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Check size={16} color="#10b981" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <button
-                onClick={() => handleUpgrade(p.id)}
-                disabled={isCurrent || loadingPlan === p.id}
-                className={isPro || p.id === 'enterprise' ? 'gradient-btn-primary' : ''}
-                style={{
-                  padding: '12px',
-                  width: '100%',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  cursor: isCurrent ? 'default' : 'pointer',
-                  border: isCurrent ? '1px solid var(--border-glass)' : 'none',
-                  background: isCurrent ? 'var(--bg-glass)' : undefined,
-                  color: isCurrent ? 'var(--text-muted)' : '#fff'
-                }}
-              >
-                {loadingPlan === p.id ? 'Processing...' : isCurrent ? 'Active Subscription' : `Switch to ${p.name}`}
-              </button>
+          {currentPlan && (
+            <div className="billing-current-price">
+              ${currentPlan.price}
+              <span> / {currentPlan.interval}</span>
             </div>
-          );
-        })}
-      </div>
+          )}
+        </div>
+
+        <div className="billing-usage">
+          <div className="billing-usage-header">
+            <span>Token usage</span>
+            <strong>{percentUsed}%</strong>
+          </div>
+
+          <div
+            className="billing-progress-track"
+            role="progressbar"
+            aria-valuenow={percentUsed}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Monthly token usage"
+          >
+            <div
+              className={`billing-progress-fill ${
+                percentUsed > 85 ? "billing-progress-warning" : ""
+              }`}
+              style={{ width: `${percentUsed}%` }}
+            />
+          </div>
+
+          <div className="billing-usage-footer">
+            <span>0 tokens</span>
+            <span>{formatNumber(tokenLimit)} tokens</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Plans */}
+      <section className="billing-section">
+        <div className="billing-section-header">
+          <div>
+            <h2>Available plans</h2>
+            <p>Choose the allowance that fits your usage.</p>
+          </div>
+
+          <span className="billing-section-count">
+            {plans.length} {plans.length === 1 ? "PLAN" : "PLANS"}
+          </span>
+        </div>
+
+        {plans.length === 0 ? (
+          <div className="billing-empty">
+            <CreditCard size={24} />
+            <h3>No plans available</h3>
+            <p>Subscription plans could not be loaded.</p>
+          </div>
+        ) : (
+          <div className="billing-plans-grid">
+            {plans.map((plan) => {
+              const isCurrent = user?.plan === plan.id;
+              const isPro = plan.id === "pro";
+              const features = Array.isArray(plan.features)
+                ? plan.features
+                : [];
+
+              return (
+                <article
+                  key={plan.id}
+                  className={`billing-plan-card ${
+                    isCurrent ? "billing-plan-current" : ""
+                  } ${isPro ? "billing-plan-pro" : ""}`}
+                >
+                  {isCurrent && (
+                    <span className="billing-current-badge">CURRENT PLAN</span>
+                  )}
+
+                  <div className="billing-plan-content">
+                    <div className="billing-plan-name">
+                      {isPro && <Sparkles size={15} />}
+                      {plan.name}
+                    </div>
+
+                    <div className="billing-plan-price">
+                      <span>${plan.price}</span>
+                      <small>/{plan.interval}</small>
+                    </div>
+
+                    <p className="billing-plan-tokens">
+                      <Zap size={14} />
+                      {formatNumber(plan.tokenLimit)} monthly tokens
+                    </p>
+
+                    <div className="billing-plan-divider" />
+
+                    <div className="billing-features-label">
+                      WHAT'S INCLUDED
+                    </div>
+
+                    <ul className="billing-features">
+                      {features.map((feature, index) => (
+                        <li key={`${plan.id}-${index}`}>
+                          <span className="billing-feature-check">
+                            <Check size={13} />
+                          </span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleUpgrade(plan.id)}
+                    disabled={isCurrent || loadingPlan !== null}
+                    className={`billing-plan-button ${
+                      isCurrent
+                        ? "billing-button-current"
+                        : isPro || plan.id === "enterprise"
+                          ? "billing-button-primary"
+                          : "billing-button-secondary"
+                    }`}
+                  >
+                    {loadingPlan === plan.id ? (
+                      <>
+                        <LoaderCircle size={15} className="billing-spinner" />
+                        Processing...
+                      </>
+                    ) : isCurrent ? (
+                      <>
+                        <Check size={15} />
+                        Active subscription
+                      </>
+                    ) : (
+                      `Switch to ${plan.name}`
+                    )}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       {/* Invoice History */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <h2 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '16px' }}>Invoice & Billing History</h2>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-glass)', color: 'var(--text-muted)', fontSize: '12px' }}>
-                <th style={{ padding: '10px 12px' }}>Invoice ID</th>
-                <th style={{ padding: '10px 12px' }}>Billing Date</th>
-                <th style={{ padding: '10px 12px' }}>Amount</th>
-                <th style={{ padding: '10px 12px' }}>Payment Status</th>
-                <th style={{ padding: '10px 12px' }}>Receipt</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map((inv) => (
-                <tr key={inv.id} style={{ borderBottom: '1px solid var(--border-glass)' }}>
-                  <td style={{ padding: '12px', fontWeight: 600 }}>{inv.id}</td>
-                  <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>{inv.date}</td>
-                  <td style={{ padding: '12px', fontWeight: 700 }}>{inv.amount}</td>
-                  <td style={{ padding: '12px' }}>
-                    <span style={{ fontSize: '11.5px', color: '#10b981', background: 'rgba(16, 185, 129, 0.12)', padding: '2px 8px', borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                      {inv.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px' }}>
-                    <button
-                      onClick={() => addToast(`Downloaded receipt ${inv.id}`, 'info')}
-                      style={{ background: 'none', border: 'none', color: 'var(--accent-purple)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 600 }}
-                    >
-                      <Download size={13} /> PDF
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <section className="billing-section billing-invoices-section">
+        <div className="billing-section-header">
+          <div className="billing-invoice-heading">
+            <div className="billing-invoice-icon">
+              <Receipt size={17} />
+            </div>
+
+            <div>
+              <h2>Billing history</h2>
+              <p>Review your previous invoices and payments.</p>
+            </div>
+          </div>
+
+          <span className="billing-section-count">
+            {invoices.length} INVOICES
+          </span>
         </div>
-      </div>
-    </div>
+
+        {invoices.length === 0 ? (
+          <div className="billing-empty">
+            <Receipt size={24} />
+            <h3>No invoices yet</h3>
+            <p>Your billing history will appear here.</p>
+          </div>
+        ) : (
+          <div className="billing-table-wrapper">
+            <table className="billing-table">
+              <thead>
+                <tr>
+                  <th>INVOICE ID</th>
+                  <th>BILLING DATE</th>
+                  <th>AMOUNT</th>
+                  <th>STATUS</th>
+                  <th className="billing-receipt-heading">RECEIPT</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {invoices.map((invoice) => (
+                  <tr key={invoice.id}>
+                    <td className="billing-invoice-id">{invoice.id}</td>
+
+                    <td className="billing-date">{invoice.date}</td>
+
+                    <td className="billing-amount">{invoice.amount}</td>
+
+                    <td>
+                      <span
+                        className={`billing-invoice-status ${
+                          String(invoice.status).toLowerCase() === "paid"
+                            ? "billing-status-paid"
+                            : "billing-status-other"
+                        }`}
+                      >
+                        {invoice.status}
+                      </span>
+                    </td>
+
+                    <td>
+                      <button
+                        type="button"
+                        className="billing-receipt-button"
+                        onClick={() => handleReceipt(invoice)}
+                      >
+                        <Download size={14} />
+                        PDF
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </main>
   );
 }
