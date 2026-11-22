@@ -1,178 +1,273 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import React, { useState, useEffect } from "react";
+import { api } from "../services/api";
 import {
   BarChart3,
   TrendingUp,
   Cpu,
   DollarSign,
-  Clock
-} from 'lucide-react';
+  Clock,
+  Activity,
+  Zap,
+} from "lucide-react";
 
 export default function AnalyticsPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
         const res = await api.getAnalytics();
+
         if (res.success && res.analytics) {
           setData(res.analytics);
+        } else {
+          throw new Error(res.message || "Unable to load analytics");
         }
       } catch (err) {
-        console.error('Failed to load analytics', err);
+        console.error("Failed to load analytics:", err);
+        setError(err.message || "Failed to load analytics.");
       } finally {
         setLoading(false);
       }
     };
+
     fetchAnalytics();
   }, []);
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-        Loading real-time platform telemetry...
+      <div className="analytics-state">
+        <div className="analytics-loader" />
+        <p>Loading analytics...</p>
       </div>
     );
   }
 
-  const { totalRequests, tokensUsed, usagePercentage, estimatedCostSaved, averageLatencyMs, toolBreakdown, dailyTrend } = data || {};
-  const maxDailyTokens = Math.max(...(dailyTrend || []).map(d => d.tokens), 1000);
+  if (error) {
+    return (
+      <div className="analytics-state analytics-error">
+        <Activity size={28} />
+        <h3>Unable to load analytics</h3>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  const {
+    totalRequests = 0,
+    tokensUsed = 0,
+    usagePercentage = 0,
+    estimatedCostSaved = "$0",
+    averageLatencyMs = 0,
+    toolBreakdown = [],
+    dailyTrend = [],
+  } = data || {};
+
+  const safeTrend = Array.isArray(dailyTrend) ? dailyTrend : [];
+  const safeTools = Array.isArray(toolBreakdown) ? toolBreakdown : [];
+
+  const maxDailyTokens = Math.max(
+    ...safeTrend.map((item) => Number(item.tokens) || 0),
+    1,
+  );
+
+  const maxToolTokens = Math.max(
+    ...safeTools.map((tool) => Number(tool.tokens) || 0),
+    1,
+  );
+
+  const formatNumber = (value) => (Number(value) || 0).toLocaleString();
+
+  const metrics = [
+    {
+      label: "Total Requests",
+      value: formatNumber(totalRequests),
+      description: "Total AI requests",
+      icon: TrendingUp,
+      color: "violet",
+    },
+    {
+      label: "Tokens Consumed",
+      value: formatNumber(tokensUsed),
+      description: `${Number(usagePercentage) || 0}% of quota used`,
+      icon: Cpu,
+      color: "blue",
+    },
+    {
+      label: "Value Saved",
+      value: estimatedCostSaved ?? "$0",
+      description: "Estimated workflow savings",
+      icon: DollarSign,
+      color: "green",
+    },
+    {
+      label: "Average Latency",
+      value: `${Number(averageLatencyMs) || 0}ms`,
+      description: "Average response time",
+      icon: Clock,
+      color: "amber",
+    },
+  ];
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <BarChart3 size={20} color="#fff" />
+    <main className="analytics-page">
+      {/* Page Header */}
+      <header className="analytics-header">
+        <div className="analytics-heading">
+          <div className="analytics-heading-icon">
+            <BarChart3 size={20} />
           </div>
-          <h1 style={{ fontSize: '22px', fontWeight: 800 }}>Usage & Performance Telemetry</h1>
-        </div>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-          Real-time metrics on token consumption, request frequency, AI tool distribution, and financial cost offsets.
-        </p>
-      </div>
 
-      {/* Top 4 Metric Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px' }}>
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 600 }}>
-            <span>TOTAL REQUESTS</span>
-            <TrendingUp size={16} color="var(--accent-emerald)" />
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, margin: '8px 0 4px 0' }}>{totalRequests}</div>
-          <div style={{ fontSize: '12px', color: 'var(--accent-emerald)' }}>+24% vs last week</div>
-        </div>
-
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 600 }}>
-            <span>TOKENS CONSUMED</span>
-            <Cpu size={16} color="var(--accent-purple)" />
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, margin: '8px 0 4px 0' }}>{tokensUsed.toLocaleString()}</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{usagePercentage}% of quota used</div>
-        </div>
-
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 600 }}>
-            <span>VALUE SAVED</span>
-            <DollarSign size={16} color="var(--accent-amber)" />
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, margin: '8px 0 4px 0' }}>{estimatedCostSaved}</div>
-          <div style={{ fontSize: '12px', color: 'var(--accent-emerald)' }}>Vs manual workflows</div>
-        </div>
-
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '12px', fontWeight: 600 }}>
-            <span>AVERAGE LATENCY</span>
-            <Clock size={16} color="var(--accent-blue)" />
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, margin: '8px 0 4px 0' }}>{averageLatencyMs}ms</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Edge-accelerated</div>
-        </div>
-      </div>
-
-      {/* 7-Day Interactive Trend Chart */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
-            <h2 style={{ fontSize: '16px', fontWeight: 700 }}>Daily Token Ingestion Trend (Last 7 Days)</h2>
-            <div style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Aggregate token volume per 24-hour cycle</div>
+            <div className="analytics-eyebrow">WORKSPACE</div>
+            <h1>Analytics</h1>
+            <p>Monitor your AI usage, performance, and tool activity.</p>
           </div>
-          <span style={{ fontSize: '12px', background: 'rgba(139, 92, 246, 0.15)', color: '#c084fc', padding: '4px 10px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
-            Real-Time Feed
+        </div>
+
+        <div className="analytics-status">
+          <span className="analytics-status-dot" />
+          Usage overview
+        </div>
+      </header>
+
+      {/* Metrics */}
+      <section className="analytics-metrics">
+        {metrics.map((metric) => {
+          const Icon = metric.icon;
+
+          return (
+            <article className="analytics-metric-card" key={metric.label}>
+              <div className="analytics-metric-top">
+                <span>{metric.label}</span>
+                <div className={`analytics-metric-icon ${metric.color}`}>
+                  <Icon size={17} />
+                </div>
+              </div>
+
+              <div className="analytics-metric-value">{metric.value}</div>
+
+              <div className="analytics-metric-description">
+                {metric.description}
+              </div>
+            </article>
+          );
+        })}
+      </section>
+
+      {/* Daily Trend */}
+      <section className="analytics-panel">
+        <div className="analytics-panel-header">
+          <div>
+            <h2>Usage activity</h2>
+            <p>Daily token consumption</p>
+          </div>
+
+          <span className="analytics-period">
+            <Activity size={13} />
+            Last 7 days
           </span>
         </div>
 
-        {/* Responsive SVG Bar Chart */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '200px', padding: '10px 0', borderBottom: '1px solid var(--border-glass)' }}>
-          {dailyTrend?.map((item, idx) => {
-            const heightPercent = Math.max(15, Math.round((item.tokens / maxDailyTokens) * 100));
-            return (
-              <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, height: '100%', justifyContent: 'flex-end', gap: '8px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{item.tokens}</span>
-                <div
-                  title={`${item.day}: ${item.tokens} tokens, ${item.requests} requests`}
-                  style={{
-                    width: '55%',
-                    maxWidth: '44px',
-                    height: `${heightPercent}%`,
-                    borderRadius: '6px 6px 0 0',
-                    background: 'linear-gradient(180deg, #8b5cf6 0%, #6366f1 100%)',
-                    boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(1.2)'}
-                  onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
-                />
-                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>{item.day}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Tool Distribution Breakdown */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>AI Tool Consumption Breakdown</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-          {toolBreakdown?.map((tool, idx) => (
-            <div
-              key={idx}
-              style={{
-                background: 'var(--bg-glass)',
-                border: '1px solid var(--border-glass)',
-                borderRadius: '10px',
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '14px', fontWeight: 700 }}>{tool.name}</span>
-                <span style={{ fontSize: '12px', color: 'var(--accent-purple)', fontWeight: 600 }}>{tool.value} calls</span>
-              </div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                {tool.tokens.toLocaleString()} tokens utilized
-              </div>
-              <div style={{ height: '4px', background: 'var(--bg-tertiary)', borderRadius: '2px', overflow: 'hidden', marginTop: '4px' }}>
-                <div style={{ width: `${Math.min(100, (tool.tokens / 3000) * 100)}%`, height: '100%', background: 'linear-gradient(90deg, #8b5cf6, #38bdf8)' }} />
-              </div>
+        {safeTrend.length > 0 ? (
+          <div className="analytics-chart">
+            <div className="analytics-chart-grid">
+              <span>Tokens</span>
             </div>
-          ))}
+
+            <div className="analytics-chart-bars">
+              {safeTrend.map((item, index) => {
+                const tokens = Number(item.tokens) || 0;
+                const height = Math.max(4, (tokens / maxDailyTokens) * 100);
+
+                return (
+                  <div className="analytics-chart-column" key={index}>
+                    <span className="analytics-bar-value">
+                      {formatNumber(tokens)}
+                    </span>
+
+                    <div className="analytics-bar-track">
+                      <div
+                        className="analytics-bar"
+                        style={{ height: `${height}%` }}
+                        title={`${item.day}: ${formatNumber(tokens)} tokens, ${formatNumber(item.requests)} requests`}
+                      />
+                    </div>
+
+                    <span className="analytics-bar-label">{item.day}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="analytics-empty">
+            <BarChart3 size={28} />
+            <p>No usage activity available yet.</p>
+          </div>
+        )}
+      </section>
+
+      {/* Tool Breakdown */}
+      <section className="analytics-panel">
+        <div className="analytics-panel-header">
+          <div>
+            <h2>AI tool usage</h2>
+            <p>Breakdown of your AI tool consumption</p>
+          </div>
+
+          <div className="analytics-panel-icon">
+            <Zap size={17} />
+          </div>
         </div>
-      </div>
-    </div>
+
+        {safeTools.length > 0 ? (
+          <div className="analytics-tools">
+            {safeTools.map((tool, index) => {
+              const tokens = Number(tool.tokens) || 0;
+              const percentage = (tokens / maxToolTokens) * 100;
+
+              return (
+                <article className="analytics-tool-card" key={index}>
+                  <div className="analytics-tool-info">
+                    <div className="analytics-tool-name">
+                      <span className="analytics-tool-indicator" />
+                      {tool.name}
+                    </div>
+
+                    <span className="analytics-tool-calls">
+                      {formatNumber(tool.value)} calls
+                    </span>
+                  </div>
+
+                  <div className="analytics-tool-tokens">
+                    {formatNumber(tokens)} tokens utilized
+                  </div>
+
+                  <div className="analytics-progress-track">
+                    <div
+                      className="analytics-progress-bar"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="analytics-empty">
+            <Cpu size={28} />
+            <p>No tool usage data available yet.</p>
+          </div>
+        )}
+      </section>
+
+      <footer className="analytics-footer">
+        <Activity size={13} />
+        Metrics are based on the analytics data returned by your workspace.
+      </footer>
+    </main>
   );
 }
