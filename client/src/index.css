@@ -11062,3 +11062,245 @@ button.gradient-btn-primary {
   color: #555b62 !important;
   background: transparent !important;
 }
+
+/* ==========================================================
+   STRIPE EXECUTIVE — GLOBAL LIGHT THEME ACCESSIBILITY PATCH
+   Appended last so legacy page-specific dark declarations lose.
+========================================================== */
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+[data-theme="light"] body,
+[data-theme="light"] #root,
+[data-theme="light"] .app-layout,
+[data-theme="light"] .dashboard-layout,
+[data-theme="light"] .dashboard-content,
+[data-theme="light"] .dashboard-main {
+  background: #f4f5f6 !important;
+  color: #202328 !important;
+}
+
+/* Main content surfaces across every tool page */
+[data-theme="light"]
+  .dashboard-main
+  :is(
+    [class*="section"],
+    [class*="panel"],
+    [class*="card"],
+    [class*="history"],
+    [class*="result"],
+    [class*="output"],
+    [class*="workspace"],
+    [class*="editor"],
+    [class*="diagnostic"],
+    [class*="invoice"],
+    [class*="guide"],
+    [class*="empty-state"],
+    [class*="message-bubble"]
+  ) {
+  background-color: #ffffff !important;
+  color: #202328 !important;
+  border-color: #d9dde2 !important;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.035) !important;
+}
+
+/* Text contrast: neutralize old near-black/white hardcoded colors */
+[data-theme="light"]
+  .dashboard-main
+  :is(
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    span,
+    label,
+    small,
+    strong,
+    b,
+    em,
+    li,
+    dt,
+    dd,
+    th,
+    td,
+    figcaption
+  ) {
+  color: #30343a;
+}
+[data-theme="light"]
+  .dashboard-main
+  :is(
+    .page-title,
+    .tool-page-title h1,
+    .home-page h1,
+    .home-page h2,
+    .billing-section-title,
+    .billing-invoice-id,
+    .billing-amount,
+    .chat-message-bubble,
+    .chat-message-author
+  ) {
+  color: #202328 !important;
+}
+[data-theme="light"]
+  .dashboard-main
+  :is(
+    .page-description,
+    .text-muted,
+    .chat-message-author span,
+    .billing-date,
+    .billing-table th,
+    .code-panel-heading p,
+    .code-result-header p,
+    .code-metric-label
+  ) {
+  color: #68717c !important;
+}
+
+/* AI chat markdown and generated code: keep code readable in light mode */
+[data-theme="light"] .chat-messages,
+[data-theme="light"] .chat-message-bubble {
+  background: #ffffff !important;
+  color: #202328 !important;
+  border-color: #d9dde2 !important;
+}
+[data-theme="light"] .chat-message-bubble pre,
+[data-theme="light"] .chat-message-bubble pre code,
+[data-theme="light"] .chat-message-bubble code,
+[data-theme="light"] .chat-message-bubble [class*="code"],
+[data-theme="light"] .chat-message-bubble [class*="Code"] {
+  background: #f1f3f5 !important;
+  color: #202328 !important;
+  border-color: #d9dde2 !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #202328 !important;
+}
+[data-theme="light"] .chat-message-bubble pre {
+  padding: 16px !important;
+  overflow-x: auto !important;
+  border: 1px solid #d9dde2 !important;
+  border-radius: 7px !important;
+}
+[data-theme="light"] .chat-message-bubble pre *,
+[data-theme="light"] .chat-message-bubble code * {
+  color: #30343a !important;
+  -webkit-text-fill-color: #30343a !important;
+  text-shadow: none !important;
+}
+[data-theme="light"] .chat-message-bubble blockquote {
+  color: #4d5661 !important;
+  background: #f5f6f7 !important;
+  border-left-color: #777f88 !important;
+}
+
+/* Code reviewer panels and editor */
+[data-theme="light"] .code-editor-panel,
+[data-theme="light"] .code-review-results,
+[data-theme="light"] .code-empty-state,
+[data-theme="light"] .code-metric-card,
+[data-theme="light"] .code-suggestion-card,
+[data-theme="light"] .code-issue-card {
+  background: #ffffff !important;
+  color: #202328 !important;
+  border-color: #d9dde2 !important;
+}
+[data-theme="light"] .code-editor-panel *,
+[data-theme="light"] .code-review-results *,
+[data-theme="light"] .code-empty-state * {
+  text-shadow: none;
+}
+[data-theme="light"] .code-editor-panel :is(textarea, pre, code),
+[data-theme="light"] .code-review-results :is(pre, code) {
+  background: #f1f3f5 !important;
+  color: #202328 !important;
+  border-color: #d9dde2 !important;
+  -webkit-text-fill-color: #202328 !important;
+}
+[data-theme="light"] .code-editor-panel :is(textarea, pre, code) *,
+[data-theme="light"] .code-review-results :is(pre, code) * {
+  color: #30343a !important;
+  -webkit-text-fill-color: #30343a !important;
+}
+
+/* Billing page — invoice history was still using dark fixed colors */
+[data-theme="light"] .billing-invoices-section,
+[data-theme="light"] .billing-table-wrapper {
+  background: #ffffff !important;
+  color: #202328 !important;
+  border-color: #d9dde2 !important;
+}
+[data-theme="light"] .billing-table th {
+  background: #f1f3f5 !important;
+  color: #59636e !important;
+  border-color: #d9dde2 !important;
+}
+[data-theme="light"] .billing-table td,
+[data-theme="light"] .billing-invoice-id,
+[data-theme="light"] .billing-amount {
+  color: #202328 !important;
+  border-color: #e3e6e9 !important;
+}
+[data-theme="light"] .billing-date {
+  color: #68717c !important;
+}
+
+/* Dashboard activity/history tables */
+[data-theme="light"] .home-page [class*="table"],
+[data-theme="light"] .home-page [class*="activity"],
+[data-theme="light"] .home-page [class*="history"] {
+  background: #ffffff !important;
+  color: #202328 !important;
+  border-color: #d9dde2 !important;
+}
+[data-theme="light"] .home-page table th {
+  background: #f1f3f5 !important;
+  color: #59636e !important;
+}
+[data-theme="light"] .home-page table td {
+  color: #30343a !important;
+  border-color: #e3e6e9 !important;
+}
+
+/* Notifications/toasts: readable text for success, error and info states */
+[data-theme="light"] [role="status"],
+[data-theme="light"] [role="alert"],
+[data-theme="light"] [data-sonner-toast],
+[data-theme="light"] [class*="toast"],
+[data-theme="light"] [class*="Toast"],
+[data-theme="light"] [class*="notification"],
+[data-theme="light"] [class*="Notification"] {
+  background: #ffffff !important;
+  color: #202328 !important;
+  border: 1px solid #d9dde2 !important;
+  box-shadow: 0 10px 30px rgba(16, 24, 40, 0.14) !important;
+  text-shadow: none !important;
+}
+[data-theme="light"] [role="status"] *,
+[data-theme="light"] [role="alert"] *,
+[data-theme="light"] [data-sonner-toast] *,
+[data-theme="light"] [class*="toast"] *,
+[data-theme="light"] [class*="Toast"] *,
+[data-theme="light"] [class*="notification"] *,
+[data-theme="light"] [class*="Notification"] * {
+  color: #30343a !important;
+  -webkit-text-fill-color: #30343a !important;
+  text-shadow: none !important;
+}
+
+/* Form controls, selects, placeholders and disabled values */
+[data-theme="light"] .dashboard-main :is(input, textarea, select) {
+  color: #202328 !important;
+  background: #ffffff !important;
+  border-color: #cfd5dc !important;
+}
+[data-theme="light"] .dashboard-main :is(input, textarea, select)::placeholder {
+  color: #7b8490 !important;
+  opacity: 1;
+}
+[data-theme="light"] .dashboard-main :is(button, [role="button"]) {
+  text-shadow: none !important;
+}
