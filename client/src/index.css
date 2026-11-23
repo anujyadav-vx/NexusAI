@@ -10918,3 +10918,147 @@ button.gradient-btn-primary {
 [data-theme="light"] [class*="-panel"] {
   scrollbar-color: #c5c9cd transparent;
 }
+
+/* =========================================
+   STRIPE EXECUTIVE — SETTINGS + TOAST LIGHT-MODE FIX
+   Explicitly overrides legacy dark-only page styles.
+========================================= */
+[data-theme="light"] .settings-page {
+  color: #17191c;
+}
+[data-theme="light"] .settings-heading h1,
+[data-theme="light"] .settings-section-heading h2,
+[data-theme="light"] .settings-guide-heading h2,
+[data-theme="light"] .settings-guide-card-title h3,
+[data-theme="light"] .settings-key-heading h3,
+[data-theme="light"] .settings-diagnostic-value {
+  color: #17191c !important;
+}
+[data-theme="light"] .settings-heading p,
+[data-theme="light"] .settings-section-heading p,
+[data-theme="light"] .settings-guide-heading p,
+[data-theme="light"] .settings-guide-card > p,
+[data-theme="light"] .settings-diagnostic-title,
+[data-theme="light"] .settings-diagnostic-card > p,
+[data-theme="light"] .settings-field-hint,
+[data-theme="light"] .settings-key-heading p,
+[data-theme="light"] .settings-eyebrow,
+[data-theme="light"] .settings-section-label {
+  color: #687078 !important;
+}
+[data-theme="light"] .settings-section,
+[data-theme="light"] .settings-guide,
+[data-theme="light"] .settings-guide-card,
+[data-theme="light"] .settings-diagnostic-card,
+[data-theme="light"] .settings-key-card {
+  color: #17191c !important;
+  background: #ffffff !important;
+  border: 1px solid #dfe2e5 !important;
+  box-shadow: 0 4px 16px rgba(20, 24, 28, 0.045) !important;
+}
+[data-theme="light"] .settings-section-icon,
+[data-theme="light"] .settings-guide-icon,
+[data-theme="light"] .settings-diagnostic-icon,
+[data-theme="light"] .settings-provider-icon,
+[data-theme="light"] .settings-heading-icon {
+  color: #454a50 !important;
+  background: #f0f1f2 !important;
+  border: 1px solid #dfe2e5 !important;
+}
+[data-theme="light"] .settings-field label {
+  color: #30343a !important;
+}
+[data-theme="light"] .settings-field input,
+[data-theme="light"] .settings-key-input-wrap input {
+  color: #17191c !important;
+  background: #ffffff !important;
+  border: 1px solid #cfd3d7 !important;
+}
+[data-theme="light"] .settings-field input:disabled {
+  color: #687078 !important;
+  background: #f0f1f2 !important;
+}
+[data-theme="light"] .settings-code {
+  color: #30343a !important;
+  background: #f5f6f7 !important;
+  border-color: #dfe2e5 !important;
+}
+[data-theme="light"] .settings-guide-links a,
+[data-theme="light"] .settings-provider-link,
+[data-theme="light"] .settings-guide-note,
+[data-theme="light"] .settings-guide-note svg {
+  color: #454a50 !important;
+}
+[data-theme="light"] .settings-guide-btn,
+[data-theme="light"] .settings-icon-btn,
+[data-theme="light"] .settings-secondary-btn {
+  color: #30343a !important;
+  background: #f5f6f7 !important;
+  border: 1px solid #d5d9dd !important;
+}
+[data-theme="light"] .settings-primary-btn,
+[data-theme="light"] .settings-secondary-btn {
+  border-radius: 5px;
+}
+[data-theme="light"] .settings-primary-btn {
+  color: #ffffff !important;
+  background: #30343a !important;
+  border-color: #30343a !important;
+}
+[data-theme="light"] .settings-primary-btn:hover:not(:disabled) {
+  background: #17191c !important;
+}
+[data-theme="light"] .settings-security-note {
+  color: #454a50 !important;
+  background: #f5f6f7 !important;
+  border-color: #dfe2e5 !important;
+}
+[data-theme="light"] .settings-security-note strong,
+[data-theme="light"] .settings-security-note p,
+[data-theme="light"] .settings-security-note > svg {
+  color: #454a50 !important;
+}
+[data-theme="light"] .settings-status,
+[data-theme="light"] .settings-key-status {
+  color: #454a50 !important;
+  background: #f0f1f2 !important;
+}
+[data-theme="light"] .settings-status svg,
+[data-theme="light"] .settings-key-status svg {
+  color: #454a50 !important;
+}
+[data-theme="light"] .settings-danger-btn {
+  color: #555b62 !important;
+  border-color: #cfd3d7 !important;
+}
+[data-theme="light"] .settings-reveal-btn {
+  color: #555b62 !important;
+}
+[data-theme="light"] .settings-field input::placeholder,
+[data-theme="light"] .settings-key-input-wrap input::placeholder {
+  color: #858b91 !important;
+}
+
+/* Toasts and alerts must not retain their legacy dark navy/black surface. */
+[data-theme="light"] [class*="toast"],
+[data-theme="light"] [class*="Toast"],
+[data-theme="light"] [class*="notification"],
+[data-theme="light"] [role="alert"],
+[data-theme="light"] [data-sonner-toast] {
+  color: #17191c !important;
+  background: #ffffff !important;
+  border-color: #d5d9dd !important;
+  box-shadow: 0 8px 28px rgba(20, 24, 28, 0.12) !important;
+}
+[data-theme="light"] [class*="toast"] *,
+[data-theme="light"] [class*="Toast"] *,
+[data-theme="light"] [class*="notification"] *,
+[data-theme="light"] [role="alert"] * {
+  color: inherit;
+}
+[data-theme="light"] [class*="toast"] button,
+[data-theme="light"] [class*="Toast"] button,
+[data-theme="light"] [class*="notification"] button {
+  color: #555b62 !important;
+  background: transparent !important;
+}
