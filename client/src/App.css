@@ -862,3 +862,111 @@
     padding: 22px 16px;
   }
 }
+
+/* =========================================
+   STRIPE EXECUTIVE — GRAPHITE LIGHT APP SHELL
+========================================= */
+[data-theme="light"] .app-layout,
+[data-theme="light"] .main-content,
+[data-theme="light"] .workspace-main {
+  color: #17191c;
+  background: #f5f6f7;
+}
+
+[data-theme="light"] .app-sidebar {
+  background: #ffffff;
+  border-right: 1px solid #dfe2e5;
+  box-shadow: 2px 0 12px rgba(20, 24, 28, 0.025);
+}
+
+[data-theme="light"] .sidebar-brand {
+  border-bottom-color: #eaeced;
+}
+
+[data-theme="light"] .sidebar-brand-icon {
+  color: #ffffff;
+  background: #30343a;
+  border-radius: 5px;
+}
+
+[data-theme="light"] .sidebar-brand-name,
+[data-theme="light"] .sidebar-brand-name span {
+  color: #17191c;
+}
+
+[data-theme="light"] .sidebar-section {
+  color: #737980;
+}
+
+[data-theme="light"] .sidebar-link {
+  color: #555b62;
+  border-radius: 5px;
+}
+
+[data-theme="light"] .sidebar-link:hover {
+  color: #17191c;
+  background: #f0f1f2;
+}
+
+[data-theme="light"] .sidebar-link.active {
+  color: #17191c;
+  background: #eceef0;
+}
+
+[data-theme="light"] .sidebar-link.active::before {
+  background: #30343a;
+}
+
+[data-theme="light"] .sidebar-close,
+[data-theme="light"] .sidebar-toggle,
+[data-theme="light"] .navbar-action {
+  color: #555b62;
+}
+
+[data-theme="light"] .sidebar-footer,
+[data-theme="light"] .app-sidebar-footer {
+  border-top-color: #eaeced;
+}
+
+[data-theme="light"] .sidebar-pro-card {
+  background: #f5f6f7;
+  border-color: #dfe2e5;
+  border-radius: 5px;
+}
+
+[data-theme="light"] .sidebar-pro-title svg,
+[data-theme="light"] .sidebar-badge.popular,
+[data-theme="light"] .sidebar-badge.new,
+[data-theme="light"] .sidebar-badge.admin {
+  color: #454a50;
+}
+
+[data-theme="light"] .sidebar-pro-card > a {
+  color: #ffffff;
+  background: #30343a;
+  border-radius: 4px;
+}
+
+[data-theme="light"] .workspace-loading {
+  color: #555b62;
+  background: #f5f6f7;
+}
+
+[data-theme="light"] .loading-spinner {
+  border-color: #dfe2e5;
+  border-top-color: #30343a;
+}
+
+/* Editorial Noir dark shell: keep the oxblood accent consistent. */
+:root:not([data-theme="light"]) .sidebar-brand-icon,
+:root:not([data-theme="light"]) .sidebar-link.active::before,
+:root:not([data-theme="light"]) .sidebar-pro-card > a,
+:root:not([data-theme="light"]) .loading-spinner {
+  background-color: #a65356;
+}
+
+:root:not([data-theme="light"]) .sidebar-brand-name span,
+:root:not([data-theme="light"]) .sidebar-badge.popular,
+:root:not([data-theme="light"]) .sidebar-pro-title svg {
+  color: #d18a85;
+}
